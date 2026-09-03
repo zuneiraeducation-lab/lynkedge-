@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LynkEdge Screen Presentation Display</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="display-mode">
+  <div class="display-glow"></div>
+
+  <div class="display-wrapper">
+    <!-- Top Display Bar -->
+    <header class="display-header">
+      <div class="display-brand">
+        <div class="logo-badge">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="display-title">PRODUCTION STATUS</h1>
+          <p class="display-subtitle">ESP32-S3 LINKAGE CORE • ACTIVE STREAM</p>
+        </div>
+      </div>
+
+      <div class="display-indicators">
+        <div class="indicator-chip" id="boardIndicator">
+          <span class="chip-dot status-running"></span>
+          <span class="chip-label">BOARD:</span>
+          <span class="chip-val font-mono" id="boardStatusVal">RUNNING</span>
+        </div>
+        <div class="indicator-chip" id="tabletIndicator">
+          <span class="chip-dot" id="tabletDot"></span>
+          <span class="chip-label">TABLET:</span>
+          <span class="chip-val font-mono" id="tabletStatusVal">STANDBY</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main 4-Box Big Metric Grid for Factory/Floor Visibility -->
+    <main class="display-grid">
+      <!-- Person in Charge Card -->
+      <article class="metric-card card-lead">
+        <div class="metric-header">
+          <span class="metric-tag">SUPERVISOR</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <div class="metric-body">
+          <div class="metric-value-large" id="dispInCharge">--</div>
+          <div class="metric-label">Person In Charge</div>
+        </div>
+      </article>
+
+      <!-- People Working Card -->
+      <article class="metric-card card-headcount">
+        <div class="metric-header">
+          <span class="metric-tag">WORKFORCE</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <div class="metric-body">
+          <div class="metric-value-huge font-mono" id="dispWorking">0</div>
+          <div class="metric-label">People Working</div>
+        </div>
+      </article>
+
+      <!-- Production Kits Card -->
+      <article class="metric-card card-kits">
+        <div class="metric-header">
+          <span class="metric-tag">OUTPUT / UNITS</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+        </div>
+        <div class="metric-body">
+          <div class="metric-value-huge font-mono highlight-amber" id="dispKits">0</div>
+          <div class="metric-label">Production Kits</div>
+        </div>
+      </article>
+
+      <!-- Batch Number Card -->
+      <article class="metric-card card-batch">
+        <div class="metric-header">
+          <span class="metric-tag">LOT IDENTIFIER</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="9" x2="20" y2="9"></line>
+            <line x1="4" y1="15" x2="20" y2="15"></line>
+            <line x1="10" y1="3" x2="8" y2="21"></line>
+            <line x1="16" y1="3" x2="14" y2="21"></line>
+          </svg>
+        </div>
+        <div class="metric-body">
+          <div class="metric-value-large font-mono highlight-cyan" id="dispBatch">--</div>
+          <div class="metric-label">Batch Number</div>
+        </div>
+      </article>
+    </main>
+
+    <!-- Bottom Telemetry Bar -->
+    <footer class="display-footer">
+      <div class="footer-segment">
+        <span class="foot-label">LAST ACCEPTED UPDATE</span>
+        <span class="foot-value font-mono" id="dispLastUpdated">--:--:--</span>
+      </div>
+      <div class="footer-divider"></div>
+      <div class="footer-segment">
+        <span class="foot-label">DATA SOURCE</span>
+        <span class="foot-value">ESP32-S3 Persistent Flash (NVS)</span>
+      </div>
+      <div class="footer-divider"></div>
+      <div class="footer-segment">
+        <span class="foot-label">SYNC HEARTBEAT</span>
+        <span class="foot-value font-mono" id="dispLiveClock">--:--:--</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Standalone poll script for the presentation display
+    const API_STATUS = '/api/status';
+    let lastKnownTimestamp = '';
+
+    function updateClock() {
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0];
+      const clockEl = document.getElementById('dispLiveClock');
+      if (clockEl) clockEl.textContent = timeStr;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    async function fetchDisplayData() {
+      try {
+        const res = await fetch(API_STATUS, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        // Update presentation values
+        document.getElementById('dispInCharge').textContent = data.in_charge || 'Not Set';
+        document.getElementById('dispWorking').textContent = (data.working !== undefined) ? data.working : '0';
+        document.getElementById('dispKits').textContent = (data.production_kits !== undefined) ? data.production_kits : '0';
+        document.getElementById('dispBatch').textContent = data.batch_number || 'None';
+        document.getElementById('dispLastUpdated').textContent = data.last_updated || 'Awaiting Input';
+
+        // Board State
+        document.getElementById('boardStatusVal').textContent = (data.board_status || 'RUNNING').toUpperCase();
+
+        // Tablet Connection Status Logic:
+        // If data has changed or recent ping was received, show CONNECTED, else DISCONNECTED
+        const tabletStatusEl = document.getElementById('tabletStatusVal');
+        const tabletDot = document.getElementById('tabletDot');
+        
+        // Use tablet_connected flag from API if present, else fallback
+        const isTabletOnline = data.tablet_connected === true;
+        if (isTabletOnline) {
+          tabletStatusEl.textContent = 'CONNECTED';
+          tabletDot.className = 'chip-dot status-online';
+        } else {
+          tabletStatusEl.textContent = 'DISCONNECTED';
+          tabletDot.className = 'chip-dot status-offline';
+        }
+      } catch (err) {
+        // Even on network error, keep presenting the last known values!
+        console.warn('Sync attempt failed, retaining screen values:', err);
+        const tabletStatusEl = document.getElementById('tabletStatusVal');
+        const tabletDot = document.getElementById('tabletDot');
+        if (tabletStatusEl) tabletStatusEl.textContent = 'DISCONNECTED';
+        if (tabletDot) tabletDot.className = 'chip-dot status-offline';
+      }
+    }
+
+    // Continuous polling every 2 seconds
+    setInterval(fetchDisplayData, 2000);
+    fetchDisplayData();
+  </script>
+</body>
+</html>
