@@ -7,183 +7,136 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=status-option-list-1">
 </head>
-<body>
-  <div class="background-glow glow-1"></div>
-  <div class="background-glow glow-2"></div>
-
-  <main class="app-container">
-    <!-- Header -->
-    <header class="app-header">
-      <div class="brand-group">
-        <div class="logo-icon">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-          </svg>
-        </div>
-        <div class="brand-text">
-          <h1 class="brand-title">LYNKEDGE</h1>
-          <p class="brand-subtitle">Production Linkage System</p>
-        </div>
+<body class="control-page">
+  <main class="control-shell">
+    <header class="control-header">
+      <div class="control-heading">
+        <span class="heading-rule"></span>
+        <h1>STATUS BOARD FOR AREA AND FIXED EQUIPMENTS AND ACCESSORIES</h1>
+        <p>ENTER / UPDATE INFORMATION</p>
       </div>
-
-      <div class="connection-badge" id="connBadge">
-        <span class="status-dot pulse"></span>
-        <span class="status-text" id="connText">Checking Link...</span>
+      <div class="brand-block">
+        <div class="brand-name">CIPLA</div>
+        <div class="brand-meta">
+          <span>GOA</span>
+          <input id="unitNumber" name="unit_number" class="brand-unit-input" type="text" value="UNIT VII PDII" aria-label="Unit number">
+        </div>
       </div>
     </header>
 
-    <!-- Main Card -->
-    <section class="card data-card">
-      <div class="card-header">
-        <div>
-          <h2 class="card-title">Production Data Entry</h2>
-          <p class="card-subtitle">Values are pushed directly to the central Linkage Board</p>
+    <section class="board-panel">
+      <form id="productionForm" class="data-form" autocomplete="off">
+        <div class="entry-row">
+          <label class="entry-label">Area :</label>
+          <input id="area" name="area" class="field-box field-input" type="text" value="COMPRESSION-VII">
         </div>
-        <span class="role-pill">Operator Console</span>
-      </div>
 
-      <form id="productionForm" class="entry-form" autocomplete="off">
-        <div class="form-grid">
-          <!-- Person in Charge -->
-          <div class="form-group full-width">
-            <label for="inCharge" class="form-label">
-              <span class="label-text">Person In Charge</span>
-              <span class="label-hint">Supervisor / Lead</span>
-            </label>
-            <div class="input-wrapper">
-              <span class="input-icon">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-              </span>
-              <input type="text" id="inCharge" name="inCharge" class="form-input" placeholder="e.g. Ahmed" required maxlength="60">
-            </div>
-          </div>
+        <div class="entry-row">
+          <label class="entry-label">Fixed Equipment &amp; Accessories Code:</label>
+          <input id="equipmentCodes" name="equipment_codes" class="field-box field-input" type="text" value="TM-061.TM-021, GA-T-AC-0410, GA-T-AC-0462, GA-T-AC-0210, GA-T-AC-0446, GA-T-AC-0428, GA-T-AC-0057, GA-T-AC-0059, GA-T-AC-0416">
+        </div>
 
-          <!-- Number of People Working -->
-          <div class="form-group">
-            <label for="working" class="form-label">
-              <span class="label-text">People Working</span>
-              <span class="label-hint">Current active headcount</span>
-            </label>
-            <div class="input-wrapper">
-              <span class="input-icon">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-              </span>
-              <input type="number" id="working" name="working" class="form-input" placeholder="0" min="0" max="9999" required>
+        <div class="entry-row">
+          <label class="entry-label">Status :</label>
+          <div class="status-controls">
+            <select id="status" name="status" class="status-native-select">
+              <option value="" selected disabled>Select Status</option>
+            </select>
+            <div class="status-picker">
+              <button type="button" id="statusPickerBtn" class="status-picker-btn">Select Status<span>▾</span></button>
+              <div id="statusOptionsList" class="status-options-list hidden"></div>
             </div>
-          </div>
-
-          <!-- Production Kits -->
-          <div class="form-group">
-            <label for="productionKits" class="form-label">
-              <span class="label-text">Production Kits</span>
-              <span class="label-hint">Target or completed units</span>
-            </label>
-            <div class="input-wrapper">
-              <span class="input-icon">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                </svg>
-              </span>
-              <input type="number" id="productionKits" name="productionKits" class="form-input" placeholder="0" min="0" max="99999" required>
-            </div>
-          </div>
-
-          <!-- Batch Number -->
-          <div class="form-group full-width">
-            <label for="batchNumber" class="form-label">
-              <span class="label-text">Batch Number</span>
-              <span class="label-hint">Lot code / Work order</span>
-            </label>
-            <div class="input-wrapper">
-              <span class="input-icon">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="4" y1="9" x2="20" y2="9"></line>
-                  <line x1="4" y1="15" x2="20" y2="15"></line>
-                  <line x1="10" y1="3" x2="8" y2="21"></line>
-                  <line x1="16" y1="3" x2="14" y2="21"></line>
-                </svg>
-              </span>
-              <input type="text" id="batchNumber" name="batchNumber" class="form-input font-mono" placeholder="e.g. B1024" required maxlength="30">
-            </div>
+            <button type="button" id="addStatusOptionBtn" class="add-status-btn">+ Add option</button>
           </div>
         </div>
 
-        <!-- Action Area -->
-        <div class="form-actions">
-          <button type="submit" id="submitBtn" class="btn-primary">
-            <span class="btn-text">Submit / Update Board</span>
-            <span class="btn-icon">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
+        <div class="entry-row option-row">
+          <label class="entry-label radio-label">
+            <span class="radio-options">
+              <span><input type="radio" name="previousNameType" value="previous_product_name" checked> (Previous Product Name)</span>
+              <span><input type="radio" name="previousNameType" value="previous_material_name"> (Previous Material Name)</span>
             </span>
+          </label>
+          <select id="previousNameValue" class="field-box field-select">
+            <option value="">&lt;---select an option---&gt;</option>
+          </select>
+        </div>
+
+        <div class="entry-row option-row">
+          <label class="entry-label radio-label">
+            <span class="radio-options">
+              <span><input type="radio" name="currentNameType" value="product_name" checked> (Product Name)</span>
+              <span><input type="radio" name="currentNameType" value="material_name"> (Material Name)</span>
+            </span>
+          </label>
+          <select id="currentNameValue" class="field-box field-select">
+            <option value="">&lt;---select an option---&gt;</option>
+          </select>
+        </div>
+
+        <div class="entry-row">
+          <label class="entry-label radio-label">
+            <span class="radio-options">
+              <span><input type="radio" name="batchType" value="batch_number" checked> (Batch No.)</span>
+              <span><input type="radio" name="batchType" value="sap_batch_number"> (SAP Batch No.)</span>
+            </span>
+          </label>
+          <select id="batchValue" class="field-box field-select">
+            <option value="">&lt;---select an option---&gt;</option>
+          </select>
+        </div>
+
+        <div class="entry-row">
+          <label class="entry-label">Cleaning Valid up to :</label>
+          <input id="cleaningValidUpTo" name="cleaning_valid_up_to" class="field-box field-input" type="date">
+        </div>
+
+        <div class="entry-row">
+          <label class="entry-label">Equipment/Accessories/Area clean before date and time :</label>
+          <input id="cleanBeforeDatetime" name="clean_before_datetime" class="field-box field-input" type="datetime-local">
+        </div>
+
+        <div class="entry-row">
+          <label class="entry-label">Status updated by :</label>
+          <input id="updatedBy" name="updated_by" class="field-box field-input" type="text" placeholder="ENTER NAME">
+        </div>
+
+        <div class="entry-row">
+          <label class="entry-label">Status updated on :</label>
+          <input id="updatedOn" name="updated_on" class="field-box field-input" type="date">
+        </div>
+
+        <div id="customRowsContainer" class="custom-rows-container"></div>
+
+        <div class="entry-row action-row">
+          <button type="button" id="addRowBtn" class="add-row-btn">+ Add Row</button>
+          <button type="submit" id="submitBtn" class="submit-btn">
+            <span class="btn-text">Submit</span>
           </button>
         </div>
       </form>
 
-      <!-- Feedback Toast Area -->
       <div id="feedbackBanner" class="feedback-banner hidden" role="alert">
         <span class="feedback-icon" id="feedbackIcon"></span>
         <span class="feedback-text" id="feedbackText"></span>
       </div>
     </section>
-
-    <!-- Status & Information Panel -->
-    <section class="card meta-card">
-      <div class="meta-grid">
-        <div class="meta-item">
-          <span class="meta-label">Last Successful Update</span>
-          <span class="meta-value font-mono" id="lastUpdatedDisplay">--:--:--</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-label">Board Core State</span>
-          <span class="meta-value font-mono highlight" id="boardStatusDisplay">INITIALIZING</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-label">Storage Integrity</span>
-          <span class="meta-value" id="storageStatusDisplay">NVS Synced</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-label">Screen Presentation</span>
-          <span class="meta-value text-success" id="screenStatusDisplay">Active (Independent)</span>
-        </div>
-      </div>
-
-      <div class="system-note">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="16" x2="12" y2="12"></line>
-          <line x1="12" y1="8" x2="12.01" y2="8"></line>
-        </svg>
-        <span>The ESP32-S3 Linkage Board is the central source of truth. Disconnecting this tablet will not interrupt the presentation screen.</span>
-      </div>
-    </section>
-
-    <!-- Navigation links -->
-    <footer class="app-footer">
-      <a href="/display" class="footer-link" target="_blank">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-          <line x1="8" y1="21" x2="16" y2="21"></line>
-          <line x1="12" y1="17" x2="12" y2="21"></line>
-        </svg>
-        <span>Open Screen Presentation View</span>
-      </a>
-    </footer>
   </main>
 
-  <script src="app.js"></script>
+  <div id="statusModal" class="status-modal hidden" role="dialog" aria-modal="true" aria-labelledby="statusModalTitle">
+    <div class="status-modal-card">
+      <button type="button" id="closeStatusModalBtn" class="close-status-modal" aria-label="Close">×</button>
+      <h2 id="statusModalTitle">Add new status</h2>
+      <input id="statusOptionInput" class="status-modal-input" type="text" placeholder="Type new status" autocomplete="off">
+      <div class="status-modal-actions">
+        <button type="button" id="cancelStatusBtn" class="cancel-status-btn">Cancel</button>
+        <button type="button" id="confirmStatusBtn" class="confirm-status-btn">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=status-option-list-1"></script>
 </body>
 </html>

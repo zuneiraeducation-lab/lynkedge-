@@ -1,0 +1,22 @@
+{
+  "area": "COMPRESSIONggf-",
+  "equipment_codes": "TM-061, TM-021, GA-T-AC-0410",
+  "status": "",
+  "previous_product_name": "",
+  "previous_material_name": "fghj",
+  "product_name": "gv",
+  "material_name": "",
+  "batch_number": "B1024",
+  "sap_batch_number": "B1024",
+  "cleaning_valid_up_to": "2026-09-07",
+  "clean_before_datetime": "",
+  "updated_by": "ff",
+  "updated_on": "",
+  "custom_rows": [],
+  "in_charge": "ff",
+  "working": 0,
+  "production_kits": 0,
+  "board_status": "RUNNING",
+  "tablet_connected": true,
+  "last_updated": "16:51:45"
+}

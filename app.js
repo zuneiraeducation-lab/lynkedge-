@@ -1,33 +1,44 @@
 /**
- * LynkEdge Production Data Operator Console Client
- * Handles live status sync, form submission, and disconnection resilience.
+ * LynkEdge operator console logic.
+ * Sends the full production status payload to the MYIR server and supports custom rows.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('productionForm');
   const submitBtn = document.getElementById('submitBtn');
-  const connBadge = document.getElementById('connBadge');
-  const connText = document.getElementById('connText');
-  
-  const inChargeInput = document.getElementById('inCharge');
-  const workingInput = document.getElementById('working');
-  const productionKitsInput = document.getElementById('productionKits');
-  const batchNumberInput = document.getElementById('batchNumber');
-  
-  const lastUpdatedDisplay = document.getElementById('lastUpdatedDisplay');
-  const boardStatusDisplay = document.getElementById('boardStatusDisplay');
+  const addRowBtn = document.getElementById('addRowBtn');
+  const customRowsContainer = document.getElementById('customRowsContainer');
   const feedbackBanner = document.getElementById('feedbackBanner');
   const feedbackText = document.getElementById('feedbackText');
   const feedbackIcon = document.getElementById('feedbackIcon');
+  const statusOptionInput = document.getElementById('statusOptionInput');
+  const addStatusOptionBtn = document.getElementById('addStatusOptionBtn');
+  const statusPickerBtn = document.getElementById('statusPickerBtn');
+  const statusOptionsList = document.getElementById('statusOptionsList');
+  const statusModal = document.getElementById('statusModal');
+  const closeStatusModalBtn = document.getElementById('closeStatusModalBtn');
+  const cancelStatusBtn = document.getElementById('cancelStatusBtn');
+  const confirmStatusBtn = document.getElementById('confirmStatusBtn');
 
-  let isConnected = false;
-  let pollInterval = null;
+  const fieldMap = {
+    area: document.getElementById('area'),
+    unit_number: document.getElementById('unitNumber'),
+    equipment_codes: document.getElementById('equipmentCodes'),
+    status: document.getElementById('status'),
+    previous_name_value: document.getElementById('previousNameValue'),
+    current_name_value: document.getElementById('currentNameValue'),
+    batch_value: document.getElementById('batchValue'),
+    cleaning_valid_up_to: document.getElementById('cleaningValidUpTo'),
+    clean_before_datetime: document.getElementById('cleanBeforeDatetime'),
+    updated_by: document.getElementById('updatedBy'),
+    updated_on: document.getElementById('updatedOn')
+  };
 
-  // Show inline message
   function showFeedback(type, message) {
+    if (!feedbackBanner || !feedbackText || !feedbackIcon) return;
     feedbackBanner.className = `feedback-banner ${type}`;
     feedbackText.textContent = message;
-    
+
     if (type === 'success') {
       feedbackIcon.innerHTML = `
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -44,121 +55,330 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function hideFeedback() {
-    feedbackBanner.className = 'feedback-banner hidden';
+    if (feedbackBanner) feedbackBanner.className = 'feedback-banner hidden';
   }
 
-  function updateConnectionUI(online) {
-    isConnected = online;
-    if (online) {
-      connBadge.className = 'connection-badge connected';
-      connText.textContent = 'Link Active (AP)';
-    } else {
-      connBadge.className = 'connection-badge disconnected';
-      connText.textContent = 'Disconnected';
+  function selectedValue(name) {
+    const selected = document.querySelector(`input[name="${name}"]:checked`);
+    return selected ? selected.value : '';
+  }
+
+  function setSelectValue(select, value) {
+    if (!select) return;
+    const optionValue = String(value || '');
+    if (optionValue && !Array.from(select.options).some((option) => option.value === optionValue)) {
+      select.add(new Option(optionValue, optionValue));
+    }
+    select.value = optionValue;
+  }
+
+  function addStatusOption(value, select = fieldMap.status) {
+    const optionValue = String(value || '').trim();
+    if (!select || !optionValue) return false;
+    if (!Array.from(select.options).some((option) => option.value === optionValue)) {
+      select.add(new Option(optionValue, optionValue));
+    }
+    select.value = optionValue;
+    return true;
+  }
+
+  function renderStatusOptions() {
+    if (!fieldMap.status || !statusOptionsList || !statusPickerBtn) return;
+    const selectedValue = fieldMap.status.value;
+    statusPickerBtn.firstChild.textContent = selectedValue || 'Select Status';
+    statusOptionsList.innerHTML = '';
+    Array.from(fieldMap.status.options).forEach((option) => {
+      if (!option.value) return;
+      const optionRow = document.createElement('div');
+      optionRow.className = 'status-option-row';
+      const optionButton = document.createElement('button');
+      optionButton.type = 'button';
+      optionButton.className = 'status-option-value';
+      optionButton.textContent = option.value;
+      optionButton.addEventListener('click', () => {
+        fieldMap.status.value = option.value;
+        renderStatusOptions();
+        statusOptionsList.classList.add('hidden');
+      });
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'status-option-delete';
+      deleteButton.textContent = '×';
+      deleteButton.setAttribute('aria-label', `Remove ${option.value}`);
+      deleteButton.addEventListener('click', () => {
+        option.remove();
+        fieldMap.status.selectedIndex = 0;
+        renderStatusOptions();
+      });
+      optionRow.append(optionButton, deleteButton);
+      statusOptionsList.appendChild(optionRow);
+    });
+  }
+
+  function createCustomRow(initialLabel = '', initialValue = '') {
+    const row = document.createElement('div');
+    row.className = 'custom-row';
+
+    const labelInput = document.createElement('input');
+    labelInput.type = 'text';
+    labelInput.className = 'custom-label';
+    labelInput.placeholder = 'Field / Label';
+    labelInput.value = initialLabel;
+
+    const valueInput = document.createElement('input');
+    valueInput.type = 'text';
+    valueInput.className = 'custom-value';
+    valueInput.placeholder = 'Value';
+    valueInput.value = initialValue;
+
+    const typeSelect = document.createElement('select');
+    typeSelect.className = 'custom-type';
+    typeSelect.setAttribute('aria-label', 'Custom row value type');
+    typeSelect.innerHTML = '<option value="text">Text</option><option value="date">Date</option><option value="datetime-local">Date &amp; time</option>';
+
+    const valueCell = document.createElement('div');
+    valueCell.className = 'custom-value-cell';
+    valueCell.append(valueInput, typeSelect);
+
+    typeSelect.addEventListener('change', () => {
+      const nextValue = valueCell.querySelector('.custom-value').value;
+      const nextInput = document.createElement('input');
+      nextInput.type = typeSelect.value;
+      nextInput.className = 'custom-value';
+      nextInput.placeholder = typeSelect.value === 'text' ? 'Value' : '';
+      if (typeSelect.value === 'datetime-local' && /^\d{4}-\d{2}-\d{2}$/.test(nextValue)) {
+        nextInput.value = `${nextValue}T00:00`;
+      } else if (typeSelect.value === 'date' && nextValue.includes('T')) {
+        nextInput.value = nextValue.slice(0, 10);
+      } else {
+        nextInput.value = nextValue;
+      }
+      valueCell.replaceChildren(nextInput);
+    });
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'remove-row-btn';
+    removeBtn.textContent = '×';
+    removeBtn.setAttribute('aria-label', 'Remove custom row');
+    removeBtn.addEventListener('click', () => row.remove());
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.type = 'button';
+    confirmBtn.className = 'confirm-row-btn';
+    confirmBtn.textContent = '✓';
+    confirmBtn.setAttribute('aria-label', 'Confirm custom row');
+    confirmBtn.addEventListener('click', () => {
+      const currentValueInput = valueCell.querySelector('.custom-value');
+      if (!labelInput.value.trim() || !currentValueInput || !currentValueInput.value.trim()) {
+        labelInput.focus();
+        return;
+      }
+      const isConfirmed = row.classList.toggle('confirmed');
+      labelInput.readOnly = isConfirmed;
+      if (currentValueInput) currentValueInput.readOnly = isConfirmed;
+      typeSelect.disabled = isConfirmed;
+      confirmBtn.textContent = isConfirmed ? '✎' : '✓';
+      confirmBtn.setAttribute('aria-label', isConfirmed ? 'Edit custom row' : 'Confirm custom row');
+    });
+
+    const actionCell = document.createElement('div');
+    actionCell.className = 'custom-row-actions';
+    actionCell.append(confirmBtn, removeBtn);
+
+    row.append(labelInput, valueCell, actionCell);
+    return row;
+  }
+
+  function getCustomRows() {
+    if (!customRowsContainer) return [];
+    const rows = [];
+    customRowsContainer.querySelectorAll('.custom-row').forEach((row) => {
+      const labelField = row.querySelector('.custom-label');
+      const valueField = row.querySelector('.custom-value');
+      if (!labelField || !valueField) return;
+      const label = labelField.value.trim();
+      const value = valueField.value.trim();
+      if (!label && !value) return;
+      const typeField = row.querySelector('.custom-type');
+      rows.push({ label, value, type: typeField ? typeField.value : 'text' });
+    });
+    return rows;
+  }
+
+  function populateFormFromState(data) {
+    Object.entries(fieldMap).forEach(([key, field]) => {
+      if (key === 'previous_name_value' || key === 'current_name_value' || key === 'batch_value') return;
+      if (!field || data[key] === undefined || data[key] === null) return;
+      const value = data[key];
+      if (field.type === 'date' || field.type === 'datetime-local') {
+        field.value = value;
+      } else {
+        field.value = String(value);
+      }
+    });
+
+    if (fieldMap.status) {
+      fieldMap.status.innerHTML = '';
+      fieldMap.status.add(new Option('Select Status', '', true, true));
+      const statusOptions = Array.isArray(data.status_options) ? data.status_options : [];
+      statusOptions.forEach((option) => addStatusOption(option));
+      if (data.status && statusOptions.includes(data.status)) {
+        fieldMap.status.value = data.status;
+      }
+      renderStatusOptions();
+    }
+
+    const previousKey = data.previous_product_name ? 'previous_product_name' : 'previous_material_name';
+    const currentKey = data.product_name ? 'product_name' : 'material_name';
+    const batchKey = data.batch_number ? 'batch_number' : 'sap_batch_number';
+    const previousRadio = document.querySelector(`input[name="previousNameType"][value="${previousKey}"]`);
+    const currentRadio = document.querySelector(`input[name="currentNameType"][value="${currentKey}"]`);
+    const batchRadio = document.querySelector(`input[name="batchType"][value="${batchKey}"]`);
+    if (previousRadio) previousRadio.checked = true;
+    if (currentRadio) currentRadio.checked = true;
+    if (batchRadio) batchRadio.checked = true;
+    setSelectValue(fieldMap.previous_name_value, data[previousKey]);
+    setSelectValue(fieldMap.current_name_value, data[currentKey]);
+    setSelectValue(fieldMap.batch_value, data[batchKey]);
+
+    if (!customRowsContainer) return;
+    customRowsContainer.innerHTML = '';
+    const customRows = Array.isArray(data.custom_rows) ? data.custom_rows : [];
+    customRows.forEach((row) => {
+      if (!row || typeof row !== 'object') return;
+      const label = typeof row.label === 'string' ? row.label : '';
+      const value = typeof row.value === 'string' ? row.value : '';
+      const customRow = createCustomRow(label, value);
+      const typeField = customRow.querySelector('.custom-type');
+      if (typeField && ['text', 'date', 'datetime-local'].includes(row.type)) {
+        typeField.value = row.type;
+        typeField.dispatchEvent(new Event('change'));
+      }
+      customRowsContainer.appendChild(customRow);
+    });
+    if (!customRows.length) {
+      customRowsContainer.appendChild(createCustomRow());
     }
   }
 
-  // Fetch current state from ESP32 Linkage Board
   async function fetchStatus() {
     try {
       const response = await fetch('/api/status', { cache: 'no-store' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      
       const data = await response.json();
-      updateConnectionUI(true);
-
-      // Populate form only if user is not actively editing it
-      if (document.activeElement.tagName !== 'INPUT') {
-        if (data.in_charge !== undefined && data.in_charge !== '') inChargeInput.value = data.in_charge;
-        if (data.working !== undefined && data.working !== null) workingInput.value = data.working;
-        if (data.production_kits !== undefined && data.production_kits !== null) productionKitsInput.value = data.production_kits;
-        if (data.batch_number !== undefined && data.batch_number !== '') batchNumberInput.value = data.batch_number;
-      }
-
-      if (data.last_updated) {
-        lastUpdatedDisplay.textContent = data.last_updated;
-      }
-      if (data.board_status) {
-        boardStatusDisplay.textContent = data.board_status.toUpperCase();
-      }
-    } catch (err) {
-      updateConnectionUI(false);
-      console.warn('Status poll failed:', err.message);
+      populateFormFromState(data);
+    } catch (error) {
+      console.warn('Status load failed:', error.message);
     }
   }
 
-  // Handle Form Submission
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    hideFeedback();
+  if (addRowBtn && customRowsContainer) {
+    addRowBtn.addEventListener('click', () => {
+      customRowsContainer.appendChild(createCustomRow());
+    });
+  }
 
-    const in_charge = inChargeInput.value.trim();
-    const working = parseInt(workingInput.value, 10);
-    const production_kits = parseInt(productionKitsInput.value, 10);
-    const batch_number = batchNumberInput.value.trim();
-
-    // Client-side validation
-    if (!in_charge) {
-      showFeedback('error', 'Person In Charge is required.');
-      inChargeInput.focus();
-      return;
-    }
-    if (isNaN(working) || working < 0) {
-      showFeedback('error', 'Please enter a valid number for People Working.');
-      workingInput.focus();
-      return;
-    }
-    if (isNaN(production_kits) || production_kits < 0) {
-      showFeedback('error', 'Please enter a valid number for Production Kits.');
-      productionKitsInput.focus();
-      return;
-    }
-    if (!batch_number) {
-      showFeedback('error', 'Batch Number is required.');
-      batchNumberInput.focus();
-      return;
-    }
-
-    const payload = {
-      in_charge,
-      working,
-      production_kits,
-      batch_number
+  if (addStatusOptionBtn && statusOptionInput) {
+    const closeStatusModal = () => {
+      if (statusModal) statusModal.classList.add('hidden');
+      statusOptionInput.value = '';
     };
-
-    submitBtn.disabled = true;
-    submitBtn.querySelector('.btn-text').textContent = 'Updating Board...';
-
-    try {
-      const response = await fetch('/api/update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        showFeedback('success', result.message || 'Production data successfully committed to Board & Screen!');
-        if (result.last_updated) {
-          lastUpdatedDisplay.textContent = result.last_updated;
-        }
-        updateConnectionUI(true);
-      } else {
-        showFeedback('error', result.message || 'Validation error from Linkage Board.');
+    addStatusOptionBtn.addEventListener('click', () => {
+      if (statusModal) statusModal.classList.remove('hidden');
+      statusOptionInput.focus();
+    });
+    confirmStatusBtn.addEventListener('click', () => {
+      if (addStatusOption(statusOptionInput.value)) {
+        renderStatusOptions();
+        closeStatusModal();
       }
-    } catch (err) {
-      showFeedback('error', 'Cannot reach Linkage Board. Check WiFi connection to LYNKEDGE.');
-      updateConnectionUI(false);
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.querySelector('.btn-text').textContent = 'Submit / Update Board';
-    }
-  });
+    });
+    closeStatusModalBtn.addEventListener('click', closeStatusModal);
+    cancelStatusBtn.addEventListener('click', closeStatusModal);
+    statusOptionInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') confirmStatusBtn.click();
+      if (event.key === 'Escape') closeStatusModal();
+    });
+  }
 
-  // Initial fetch and start periodic polling (every 4 seconds)
+  if (statusPickerBtn && statusOptionsList) {
+    statusPickerBtn.addEventListener('click', () => {
+      statusOptionsList.classList.toggle('hidden');
+    });
+  }
+
+  if (form) {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      hideFeedback();
+
+      const payload = {
+        area: fieldMap.area ? fieldMap.area.value.trim() : '',
+        unit_number: fieldMap.unit_number ? fieldMap.unit_number.value.trim() : '',
+        equipment_codes: fieldMap.equipment_codes ? fieldMap.equipment_codes.value.trim() : '',
+        status: fieldMap.status ? fieldMap.status.value.trim() : '',
+        previous_product_name: selectedValue('previousNameType') === 'previous_product_name' && fieldMap.previous_name_value ? fieldMap.previous_name_value.value.trim() : '',
+        previous_material_name: selectedValue('previousNameType') === 'previous_material_name' && fieldMap.previous_name_value ? fieldMap.previous_name_value.value.trim() : '',
+        product_name: selectedValue('currentNameType') === 'product_name' && fieldMap.current_name_value ? fieldMap.current_name_value.value.trim() : '',
+        material_name: selectedValue('currentNameType') === 'material_name' && fieldMap.current_name_value ? fieldMap.current_name_value.value.trim() : '',
+        batch_number: selectedValue('batchType') === 'batch_number' && fieldMap.batch_value ? fieldMap.batch_value.value.trim() : '',
+        sap_batch_number: selectedValue('batchType') === 'sap_batch_number' && fieldMap.batch_value ? fieldMap.batch_value.value.trim() : '',
+        cleaning_valid_up_to: fieldMap.cleaning_valid_up_to ? fieldMap.cleaning_valid_up_to.value : '',
+        clean_before_datetime: fieldMap.clean_before_datetime ? fieldMap.clean_before_datetime.value : '',
+        updated_by: fieldMap.updated_by ? fieldMap.updated_by.value.trim() : '',
+        updated_on: fieldMap.updated_on ? fieldMap.updated_on.value : '',
+        custom_rows: getCustomRows(),
+        status_options: Array.from(fieldMap.status ? fieldMap.status.options : []).map((option) => option.value).filter(Boolean),
+        in_charge: fieldMap.updated_by ? fieldMap.updated_by.value.trim() : '',
+        working: 0,
+        production_kits: 0,
+        batch_number_used: fieldMap.batch_value ? fieldMap.batch_value.value.trim() : ''
+      };
+
+      if (!payload.updated_by) {
+        showFeedback('error', 'Status updated by is required.');
+        if (fieldMap.updated_by) fieldMap.updated_by.focus();
+        return;
+      }
+
+      if (!payload.batch_number && !payload.sap_batch_number) {
+        showFeedback('error', 'Batch No. or SAP Batch No. is required.');
+        if (fieldMap.batch_value) fieldMap.batch_value.focus();
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Updating...';
+      }
+
+      try {
+        const response = await fetch('/api/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        if (response.ok && result.success) {
+          showFeedback('success', 'Production data saved successfully to MYIR.');
+          if (result.custom_rows) {
+            populateFormFromState({ ...payload, custom_rows: result.custom_rows });
+          }
+        } else {
+          showFeedback('error', result.message || 'Unable to save data.');
+        }
+      } catch (error) {
+        showFeedback('error', 'Could not reach MYIR server.');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit';
+        }
+      }
+    });
+  }
+
   fetchStatus();
-  pollInterval = setInterval(fetchStatus, 4000);
 });

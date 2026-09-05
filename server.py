@@ -21,10 +21,25 @@ PASSWORD = os.environ.get("LYNKEDGE_PASSWORD")
 MAX_BODY_BYTES = 16 * 1024
 
 DEFAULT_STATE = {
+    "area": "COMPRESSION-VII",
+    "unit_number": "UNIT VII PDII",
+    "equipment_codes": "TM-061, TM-021, GA-T-AC-0410",
+    "status": "",
+    "status_options": [],
+    "previous_product_name": "",
+    "previous_material_name": "",
+    "product_name": "",
+    "material_name": "",
+    "batch_number": "B1024",
+    "sap_batch_number": "",
+    "cleaning_valid_up_to": "",
+    "clean_before_datetime": "",
+    "updated_by": "",
+    "updated_on": "",
+    "custom_rows": [],
     "in_charge": "Ahmed",
     "working": 12,
     "production_kits": 450,
-    "batch_number": "B1024",
     "board_status": "RUNNING",
     "tablet_connected": True,
     "last_updated": datetime.now().strftime("%H:%M:%S")
@@ -33,12 +48,42 @@ STATE_LOCK = threading.Lock()
 SESSIONS = set()
 
 
+def normalize_custom_rows(value):
+    if not isinstance(value, list):
+        return []
+    rows = []
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        label = item.get("label")
+        val = item.get("value")
+        value_type = item.get("type", "text")
+        if value_type not in ("text", "date", "datetime-local"):
+            value_type = "text"
+        if isinstance(label, str) and isinstance(val, str):
+            rows.append({"label": label.strip(), "value": val.strip(), "type": value_type})
+        elif isinstance(label, str):
+            rows.append({"label": label.strip(), "value": "", "type": value_type})
+    return rows
+
+
+def normalize_status_options(value):
+    if not isinstance(value, list):
+        return []
+    return list(dict.fromkeys(
+        item.strip() for item in value
+        if isinstance(item, str) and item.strip()
+    ))
+
+
 def load_state():
     try:
         with open(DATA_FILE, "r", encoding="utf-8") as data_file:
             saved_state = json.load(data_file)
         state = DEFAULT_STATE.copy()
         state.update(saved_state)
+        state["custom_rows"] = normalize_custom_rows(state.get("custom_rows", []))
+        state["status_options"] = normalize_status_options(state.get("status_options", []))
         return state
     except (OSError, ValueError, TypeError):
         return DEFAULT_STATE.copy()
@@ -217,33 +262,88 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             data = read_json_body(self)
             if not isinstance(data, dict):
                 raise ValueError("Request JSON must be an object")
-            in_charge = data.get("in_charge")
+
+            area = data.get("area", "")
+            unit_number = data.get("unit_number", "")
+            equipment_codes = data.get("equipment_codes", "")
+            status = data.get("status", "")
+            status_options = normalize_status_options(data.get("status_options", []))
+            if isinstance(status, str) and status.strip() and status.strip() not in status_options:
+                status_options.append(status.strip())
+            previous_product_name = data.get("previous_product_name", "")
+            previous_material_name = data.get("previous_material_name", "")
+            product_name = data.get("product_name", "")
+            material_name = data.get("material_name", "")
+            batch_number = data.get("batch_number", "")
+            sap_batch_number = data.get("sap_batch_number", "")
+            cleaning_valid_up_to = data.get("cleaning_valid_up_to", "")
+            clean_before_datetime = data.get("clean_before_datetime", "")
+            updated_by = data.get("updated_by", "")
+            updated_on = data.get("updated_on", "")
+            custom_rows = normalize_custom_rows(data.get("custom_rows", []))
+
+            in_charge = data.get("in_charge", updated_by)
+            if in_charge is None:
+                in_charge = ""
             working = data.get("working")
+            if working is None:
+                working = 0
             production_kits = data.get("production_kits")
-            batch_number = data.get("batch_number")
-            if not isinstance(in_charge, str) or not in_charge.strip():
-                raise ValueError("in_charge is required")
-            if not isinstance(working, int) or isinstance(working, bool) or working < 0:
-                raise ValueError("working must be a non-negative integer")
-            if not isinstance(production_kits, int) or isinstance(production_kits, bool) or production_kits < 0:
-                raise ValueError("production_kits must be a non-negative integer")
+            if production_kits is None:
+                production_kits = 0
             if not isinstance(batch_number, str) or not batch_number.strip():
-                raise ValueError("batch_number is required")
+                batch_number = str(sap_batch_number or "").strip()
+
+            if not isinstance(in_charge, str):
+                in_charge = str(in_charge)
+            if not isinstance(working, int) or isinstance(working, bool):
+                try:
+                    working = int(working)
+                except (TypeError, ValueError):
+                    working = 0
+            if not isinstance(production_kits, int) or isinstance(production_kits, bool):
+                try:
+                    production_kits = int(production_kits)
+                except (TypeError, ValueError):
+                    production_kits = 0
+            if working < 0:
+                working = 0
+            if production_kits < 0:
+                production_kits = 0
+
+            now = datetime.now().strftime("%H:%M:%S")
             with STATE_LOCK:
                 state.update({
+                    "area": str(area or "").strip(),
+                    "unit_number": str(unit_number or "").strip(),
+                    "equipment_codes": str(equipment_codes or "").strip(),
+                    "status": str(status or "").strip(),
+                    "status_options": status_options,
+                    "previous_product_name": str(previous_product_name or "").strip(),
+                    "previous_material_name": str(previous_material_name or "").strip(),
+                    "product_name": str(product_name or "").strip(),
+                    "material_name": str(material_name or "").strip(),
+                    "batch_number": str(batch_number or "").strip(),
+                    "sap_batch_number": str(sap_batch_number or "").strip(),
+                    "cleaning_valid_up_to": str(cleaning_valid_up_to or "").strip(),
+                    "clean_before_datetime": str(clean_before_datetime or "").strip(),
+                    "updated_by": str(updated_by or "").strip(),
+                    "updated_on": str(updated_on or "").strip(),
+                    "custom_rows": custom_rows,
                     "in_charge": in_charge.strip(),
                     "working": working,
                     "production_kits": production_kits,
-                    "batch_number": batch_number.strip(),
-                    "last_updated": datetime.now().strftime("%H:%M:%S"),
-                    "tablet_connected": True
+                    "last_updated": now,
+                    "tablet_connected": True,
+                    "board_status": "RUNNING"
                 })
                 save_state(state)
                 last_updated = state["last_updated"]
             json_response(self, 200, {
                 "success": True,
                 "message": "Production data successfully updated on board and display!",
-                "last_updated": last_updated
+                "last_updated": last_updated,
+                "custom_rows": state.get("custom_rows", [])
             })
         except (ValueError, json.JSONDecodeError) as error:
             json_response(self, 400, {"success": False, "message": str(error)})
