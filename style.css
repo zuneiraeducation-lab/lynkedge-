@@ -106,13 +106,42 @@ body.control-page::after {
   letter-spacing: 0.16em;
 }
 
+.back-nav-btn {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(18, 57, 149, 0.25);
+  background: rgba(255, 255, 255, 0.7);
+  color: #123995;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  backdrop-filter: blur(6px);
+  transition: all 0.2s ease;
+}
+
+.back-nav-btn:hover {
+  background: #123995;
+  color: #ffffff;
+  border-color: #123995;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(18, 57, 149, 0.2);
+}
+
+.back-nav-btn svg {
+  flex-shrink: 0;
+}
+
 .control-header .brand-block {
   position: absolute;
   top: -5px;
   right: 0;
-}
-
-.control-header {
 }
 
 .brand-block {
@@ -768,11 +797,57 @@ body.display-mode {
   margin-bottom: 12px;
 }
 
+.display-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .display-home-icon {
   color: #42a9ff;
   font-size: 2.8rem;
   line-height: 1;
-  margin-top: 4px;
+}
+
+.display-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(8, 38, 66, 0.75);
+  border: 1px solid rgba(66, 169, 255, 0.45);
+  border-radius: 6px;
+  color: #8bdcff;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+}
+
+.display-edit-btn:hover {
+  background: #0d52a1;
+  border-color: #42a9ff;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(26, 159, 213, 0.4);
+  transform: translateY(-1px);
+}
+
+.display-edit-btn:active {
+  transform: translateY(0);
+}
+
+.display-edit-btn svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.display-edit-btn:hover svg {
+  transform: scale(1.1);
 }
 
 .display-brand-block {

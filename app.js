@@ -362,10 +362,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const result = await response.json();
         if (response.ok && result.success) {
-          showFeedback('success', 'Production data saved successfully to MYIR.');
+          showFeedback('success', 'Production data saved successfully! Returning to display...');
           if (result.custom_rows) {
             populateFormFromState({ ...payload, custom_rows: result.custom_rows });
           }
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 800);
         } else {
           showFeedback('error', result.message || 'Unable to save data.');
         }

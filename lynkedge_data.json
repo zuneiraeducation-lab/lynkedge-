@@ -1,22 +1,26 @@
 {
-  "area": "COMPRESSIONggf-",
+  "area": "COMPRESSION-VII",
+  "unit_number": "",
   "equipment_codes": "TM-061, TM-021, GA-T-AC-0410",
-  "status": "",
+  "status": "IN OPERATION",
+  "status_options": [
+    "IN OPERATION"
+  ],
   "previous_product_name": "",
-  "previous_material_name": "fghj",
-  "product_name": "gv",
+  "previous_material_name": "",
+  "product_name": "Paracetamol 500mg",
   "material_name": "",
   "batch_number": "B1024",
-  "sap_batch_number": "B1024",
-  "cleaning_valid_up_to": "2026-09-07",
+  "sap_batch_number": "",
+  "cleaning_valid_up_to": "",
   "clean_before_datetime": "",
-  "updated_by": "ff",
-  "updated_on": "",
+  "updated_by": "Admin Operator",
+  "updated_on": "2026-09-05",
   "custom_rows": [],
-  "in_charge": "ff",
+  "in_charge": "Admin Operator",
   "working": 0,
   "production_kits": 0,
   "board_status": "RUNNING",
   "tablet_connected": true,
-  "last_updated": "16:51:45"
+  "last_updated": "11:56:27"
 }

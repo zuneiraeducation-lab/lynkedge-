@@ -17,7 +17,7 @@ DATA_FILE = os.environ.get(
     os.path.join(DIRECTORY, "lynkedge_data.json")
 )
 USERNAME = os.environ.get("LYNKEDGE_USERNAME", "admin")
-PASSWORD = os.environ.get("LYNKEDGE_PASSWORD")
+PASSWORD = os.environ.get("LYNKEDGE_PASSWORD", "admin")
 MAX_BODY_BYTES = 16 * 1024
 
 DEFAULT_STATE = {
@@ -223,6 +223,12 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
+        super().end_headers()
+
     def do_GET(self):
         path = urlparse(self.path).path
         if path == "/api/status":
@@ -238,10 +244,10 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(response)
             return
-        if path in ("/display", "/display.html"):
-            self.path = "/display.html"
-        elif path == "/":
+        if path in ("/", "/index.html", "/display", "/display.html"):
             self.path = "/index.html"
+        elif path in ("/edit", "/edit.html", "/entry", "/control"):
+            self.path = "/edit.html"
         return super().do_GET()
 
     def do_POST(self):
@@ -421,10 +427,10 @@ if __name__ == "__main__":
     with ThreadingHTTPServer(("0.0.0.0", PORT), LynkEdgeHandler) as httpd:
         print("==================================================")
         print("  LynkEdge Web Server is running on 0.0.0.0:8080")
-        print("  - Login:                http://<MYIR-IP>:8080/login")
-        print("  - Operator Console:     http://<MYIR-IP>:8080/")
-        print("  - Display Dashboard:    http://<MYIR-IP>:8080/display")
-        print("  - Persistent data file: {}".format(DATA_FILE))
+        print("  - Display Board (Default): http://<MYIR-IP>:8080/")
+        print("  - Data Entry / Edit:       http://<MYIR-IP>:8080/edit")
+        print("  - Login:                   http://<MYIR-IP>:8080/login")
+        print("  - Persistent data file:    {}".format(DATA_FILE))
         print("==================================================")
         try:
             httpd.serve_forever()

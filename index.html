@@ -2,141 +2,94 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>LynkEdge Production Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LynkEdge Screen Presentation Display</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=status-option-list-1">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=2">
 </head>
-<body class="control-page">
-  <main class="control-shell">
-    <header class="control-header">
-      <div class="control-heading">
-        <span class="heading-rule"></span>
-        <h1>STATUS BOARD FOR AREA AND FIXED EQUIPMENTS AND ACCESSORIES</h1>
-        <p>ENTER / UPDATE INFORMATION</p>
+<body class="display-mode">
+  <div class="display-shell">
+    <div class="display-header-row">
+      <div class="display-header-left">
+        <div class="display-home-icon">⌂</div>
+        <a href="/edit" class="display-edit-btn" id="editDataBtn" title="Enter / Update Information">
+          <svg class="edit-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          <span>Edit</span>
+        </a>
       </div>
-      <div class="brand-block">
-        <div class="brand-name">CIPLA</div>
-        <div class="brand-meta">
-          <span>GOA</span>
-          <input id="unitNumber" name="unit_number" class="brand-unit-input" type="text" value="UNIT VII PDII" aria-label="Unit number">
-        </div>
-      </div>
-    </header>
-
-    <section class="board-panel">
-      <form id="productionForm" class="data-form" autocomplete="off">
-        <div class="entry-row">
-          <label class="entry-label">Area :</label>
-          <input id="area" name="area" class="field-box field-input" type="text" value="COMPRESSION-VII">
-        </div>
-
-        <div class="entry-row">
-          <label class="entry-label">Fixed Equipment &amp; Accessories Code:</label>
-          <input id="equipmentCodes" name="equipment_codes" class="field-box field-input" type="text" value="TM-061.TM-021, GA-T-AC-0410, GA-T-AC-0462, GA-T-AC-0210, GA-T-AC-0446, GA-T-AC-0428, GA-T-AC-0057, GA-T-AC-0059, GA-T-AC-0416">
-        </div>
-
-        <div class="entry-row">
-          <label class="entry-label">Status :</label>
-          <div class="status-controls">
-            <select id="status" name="status" class="status-native-select">
-              <option value="" selected disabled>Select Status</option>
-            </select>
-            <div class="status-picker">
-              <button type="button" id="statusPickerBtn" class="status-picker-btn">Select Status<span>▾</span></button>
-              <div id="statusOptionsList" class="status-options-list hidden"></div>
-            </div>
-            <button type="button" id="addStatusOptionBtn" class="add-status-btn">+ Add option</button>
-          </div>
-        </div>
-
-        <div class="entry-row option-row">
-          <label class="entry-label radio-label">
-            <span class="radio-options">
-              <span><input type="radio" name="previousNameType" value="previous_product_name" checked> (Previous Product Name)</span>
-              <span><input type="radio" name="previousNameType" value="previous_material_name"> (Previous Material Name)</span>
-            </span>
-          </label>
-          <select id="previousNameValue" class="field-box field-select">
-            <option value="">&lt;---select an option---&gt;</option>
-          </select>
-        </div>
-
-        <div class="entry-row option-row">
-          <label class="entry-label radio-label">
-            <span class="radio-options">
-              <span><input type="radio" name="currentNameType" value="product_name" checked> (Product Name)</span>
-              <span><input type="radio" name="currentNameType" value="material_name"> (Material Name)</span>
-            </span>
-          </label>
-          <select id="currentNameValue" class="field-box field-select">
-            <option value="">&lt;---select an option---&gt;</option>
-          </select>
-        </div>
-
-        <div class="entry-row">
-          <label class="entry-label radio-label">
-            <span class="radio-options">
-              <span><input type="radio" name="batchType" value="batch_number" checked> (Batch No.)</span>
-              <span><input type="radio" name="batchType" value="sap_batch_number"> (SAP Batch No.)</span>
-            </span>
-          </label>
-          <select id="batchValue" class="field-box field-select">
-            <option value="">&lt;---select an option---&gt;</option>
-          </select>
-        </div>
-
-        <div class="entry-row">
-          <label class="entry-label">Cleaning Valid up to :</label>
-          <input id="cleaningValidUpTo" name="cleaning_valid_up_to" class="field-box field-input" type="date">
-        </div>
-
-        <div class="entry-row">
-          <label class="entry-label">Equipment/Accessories/Area clean before date and time :</label>
-          <input id="cleanBeforeDatetime" name="clean_before_datetime" class="field-box field-input" type="datetime-local">
-        </div>
-
-        <div class="entry-row">
-          <label class="entry-label">Status updated by :</label>
-          <input id="updatedBy" name="updated_by" class="field-box field-input" type="text" placeholder="ENTER NAME">
-        </div>
-
-        <div class="entry-row">
-          <label class="entry-label">Status updated on :</label>
-          <input id="updatedOn" name="updated_on" class="field-box field-input" type="date">
-        </div>
-
-        <div id="customRowsContainer" class="custom-rows-container"></div>
-
-        <div class="entry-row action-row">
-          <button type="button" id="addRowBtn" class="add-row-btn">+ Add Row</button>
-          <button type="submit" id="submitBtn" class="submit-btn">
-            <span class="btn-text">Submit</span>
-          </button>
-        </div>
-      </form>
-
-      <div id="feedbackBanner" class="feedback-banner hidden" role="alert">
-        <span class="feedback-icon" id="feedbackIcon"></span>
-        <span class="feedback-text" id="feedbackText"></span>
-      </div>
-    </section>
-  </main>
-
-  <div id="statusModal" class="status-modal hidden" role="dialog" aria-modal="true" aria-labelledby="statusModalTitle">
-    <div class="status-modal-card">
-      <button type="button" id="closeStatusModalBtn" class="close-status-modal" aria-label="Close">×</button>
-      <h2 id="statusModalTitle">Add new status</h2>
-      <input id="statusOptionInput" class="status-modal-input" type="text" placeholder="Type new status" autocomplete="off">
-      <div class="status-modal-actions">
-        <button type="button" id="cancelStatusBtn" class="cancel-status-btn">Cancel</button>
-        <button type="button" id="confirmStatusBtn" class="confirm-status-btn">Add</button>
+      <div class="display-brand-block">
+        <div class="display-brand-name">CIPLA</div>
+        <div class="display-brand-meta">GOA</div>
+        <div class="display-brand-meta small" id="displayUnitNumber">UNIT VII PDII</div>
       </div>
     </div>
+
+    <h1 class="display-main-title">STATUS BOARD FOR AREA AND FIXED EQUIPMENTS AND ACCESSORIES</h1>
+
+    <div class="display-board" id="displayBoard"></div>
   </div>
 
-  <script src="app.js?v=status-option-list-1"></script>
+  <script>
+    const statusUrl = '/api/status';
+
+    function renderDisplay(data) {
+      const displayBoard = document.getElementById('displayBoard');
+      if (!displayBoard) return;
+
+      const unitEl = document.getElementById('displayUnitNumber');
+      if (unitEl && data.unit_number) {
+        unitEl.textContent = data.unit_number;
+      }
+
+      const rows = [
+        ['Area', data.area || ''],
+        ['Fixed Equipment & Accessories Code', data.equipment_codes || ''],
+        ['Status', data.status || ''],
+        ['Previous Product Name', data.previous_product_name || ''],
+        ['Previous Material Name', data.previous_material_name || ''],
+        ['Product Name', data.product_name || ''],
+        ['Material Name', data.material_name || ''],
+        ['Batch No.', data.batch_number || ''],
+        ['SAP Batch No.', data.sap_batch_number || ''],
+        ['Cleaning Valid Up To', data.cleaning_valid_up_to || ''],
+        ['Equipment/Accessories/Area clean before date and time', data.clean_before_datetime || ''],
+        ['Status updated by', data.updated_by || ''],
+        ['Status updated on', data.updated_on || '']
+      ];
+
+      const customRows = Array.isArray(data.custom_rows) ? data.custom_rows : [];
+      customRows.forEach(row => {
+        if (row && row.label) rows.push([row.label, row.value || '']);
+      });
+
+      const content = rows.map(([label, value]) => `
+        <div class="display-row">
+          <div class="display-label">${label} :</div>
+          <div class="display-value">${value || 'NA'}</div>
+        </div>
+      `).join('');
+
+      displayBoard.innerHTML = content;
+    }
+
+    async function fetchDisplayData() {
+      try {
+        const response = await fetch(statusUrl, { cache: 'no-store' });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const data = await response.json();
+        renderDisplay(data);
+      } catch (error) {
+        console.warn('Display sync failed:', error);
+      }
+    }
+
+    fetchDisplayData();
+    setInterval(fetchDisplayData, 2000);
+  </script>
 </body>
 </html>

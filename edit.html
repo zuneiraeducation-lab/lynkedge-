@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LynkEdge Production Control - Data Entry</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=status-option-list-2">
+</head>
+<body class="control-page">
+  <main class="control-shell">
+    <header class="control-header">
+      <a href="/" class="back-nav-btn" title="Back to Display Board">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Display Board</span>
+      </a>
+      <div class="control-heading">
+        <span class="heading-rule"></span>
+        <h1>STATUS BOARD FOR AREA AND FIXED EQUIPMENTS AND ACCESSORIES</h1>
+        <p>ENTER / UPDATE INFORMATION</p>
+      </div>
+      <div class="brand-block">
+        <div class="brand-name">CIPLA</div>
+        <div class="brand-meta">
+          <span>GOA</span>
+          <input id="unitNumber" name="unit_number" class="brand-unit-input" type="text" value="UNIT VII PDII" aria-label="Unit number">
+        </div>
+      </div>
+    </header>
+
+    <section class="board-panel">
+      <form id="productionForm" class="data-form" autocomplete="off">
+        <div class="entry-row">
+          <label class="entry-label">Area :</label>
+          <input id="area" name="area" class="field-box field-input" type="text" value="COMPRESSION-VII">
+        </div>
+
+        <div class="entry-row">
+          <label class="entry-label">Fixed Equipment &amp; Accessories Code:</label>
+          <input id="equipmentCodes" name="equipment_codes" class="field-box field-input" type="text" value="TM-061.TM-021, GA-T-AC-0410, GA-T-AC-0462, GA-T-AC-0210, GA-T-AC-0446, GA-T-AC-0428, GA-T-AC-0057, GA-T-AC-0059, GA-T-AC-0416">
+        </div>
+
+        <div class="entry-row">
+          <label class="entry-label">Status :</label>
+          <div class="status-controls">
+            <select id="status" name="status" class="status-native-select">
+              <option value="" selected disabled>Select Status</option>
+            </select>
+            <div class="status-picker">
+              <button type="button" id="statusPickerBtn" class="status-picker-btn">Select Status<span>▾</span></button>
+              <div id="statusOptionsList" class="status-options-list hidden"></div>
+            </div>
+            <button type="button" id="addStatusOptionBtn" class="add-status-btn">+ Add option</button>
+          </div>
+        </div>
+
+        <div class="entry-row option-row">
+          <label class="entry-label radio-label">
+            <span class="radio-options">
+              <span><input type="radio" name="previousNameType" value="previous_product_name" checked> (Previous Product Name)</span>
+              <span><input type="radio" name="previousNameType" value="previous_material_name"> (Previous Material Name)</span>
+            </span>
+          </label>
+          <select id="previousNameValue" class="field-box field-select">
+            <option value="">&lt;---select an option---&gt;</option>
+          </select>
+        </div>
+
+        <div class="entry-row option-row">
+          <label class="entry-label radio-label">
+            <span class="radio-options">
+              <span><input type="radio" name="currentNameType" value="product_name" checked> (Product Name)</span>
+              <span><input type="radio" name="currentNameType" value="material_name"> (Material Name)</span>
+            </span>
+          </label>
+          <select id="currentNameValue" class="field-box field-select">
+            <option value="">&lt;---select an option---&gt;</option>
+          </select>
+        </div>
+
+        <div class="entry-row">
+          <label class="entry-label radio-label">
+            <span class="radio-options">
+              <span><input type="radio" name="batchType" value="batch_number" checked> (Batch No.)</span>
+              <span><input type="radio" name="batchType" value="sap_batch_number"> (SAP Batch No.)</span>
+            </span>
+          </label>
+          <select id="batchValue" class="field-box field-select">
+            <option value="">&lt;---select an option---&gt;</option>
+          </select>
+        </div>
+
+        <div class="entry-row">
+          <label class="entry-label">Cleaning Valid up to :</label>
+          <input id="cleaningValidUpTo" name="cleaning_valid_up_to" class="field-box field-input" type="date">
+        </div>
+
+        <div class="entry-row">
+          <label class="entry-label">Equipment/Accessories/Area clean before date and time :</label>
+          <input id="cleanBeforeDatetime" name="clean_before_datetime" class="field-box field-input" type="datetime-local">
+        </div>
+
+        <div class="entry-row">
+          <label class="entry-label">Status updated by :</label>
+          <input id="updatedBy" name="updated_by" class="field-box field-input" type="text" placeholder="ENTER NAME">
+        </div>
+
+        <div class="entry-row">
+          <label class="entry-label">Status updated on :</label>
+          <input id="updatedOn" name="updated_on" class="field-box field-input" type="date">
+        </div>
+
+        <div id="customRowsContainer" class="custom-rows-container"></div>
+
+        <div class="entry-row action-row">
+          <button type="button" id="addRowBtn" class="add-row-btn">+ Add Row</button>
+          <button type="submit" id="submitBtn" class="submit-btn">
+            <span class="btn-text">Submit</span>
+          </button>
+        </div>
+      </form>
+
+      <div id="feedbackBanner" class="feedback-banner hidden" role="alert">
+        <span class="feedback-icon" id="feedbackIcon"></span>
+        <span class="feedback-text" id="feedbackText"></span>
+      </div>
+    </section>
+  </main>
+
+  <div id="statusModal" class="status-modal hidden" role="dialog" aria-modal="true" aria-labelledby="statusModalTitle">
+    <div class="status-modal-card">
+      <button type="button" id="closeStatusModalBtn" class="close-status-modal" aria-label="Close">×</button>
+      <h2 id="statusModalTitle">Add new status</h2>
+      <input id="statusOptionInput" class="status-modal-input" type="text" placeholder="Type new status" autocomplete="off">
+      <div class="status-modal-actions">
+        <button type="button" id="cancelStatusBtn" class="cancel-status-btn">Cancel</button>
+        <button type="button" id="confirmStatusBtn" class="confirm-status-btn">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=status-option-list-2"></script>
+</body>
+</html>
