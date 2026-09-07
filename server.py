@@ -253,6 +253,9 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
         if path in ("/", "/index.html", "/display", "/display.html"):
             self.path = "/index.html"
         elif path in ("/edit", "/edit.html", "/entry", "/control"):
+            if not valid_session(self):
+                self.redirect("/login")
+                return
             self.path = "/edit.html"
         return super().do_GET()
 
@@ -401,7 +404,7 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(response)
                 return
-            self.redirect_with_session("/")
+            self.redirect_with_session("/edit")
         except (ValueError, UnicodeDecodeError):
             json_response(self, 400, {"success": False, "message": "Invalid login request"})
 
@@ -436,6 +439,11 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             "Set-Cookie",
             "lynkedge_session={}; HttpOnly; SameSite=Strict; Path=/".format(session)
         )
+        self.end_headers()
+
+    def redirect(self, location):
+        self.send_response(303)
+        self.send_header("Location", location)
         self.end_headers()
 
     def log_message(self, format_string, *args):

@@ -6,7 +6,7 @@ echo   Starting LynkEdge Web Server...
 echo ======================================================
 echo.
 echo Opening browser...
-start http://localhost:8080/login
+start http://localhost:8080/
 echo.
 echo Server is running! Keep this window open.
 echo Press Ctrl+C or close this window to stop the server.
