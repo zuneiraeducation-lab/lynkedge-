@@ -1,6 +1,6 @@
 {
   "area": "COMPRESSION-VII",
-  "unit_number": "",
+  "unit_number": "fdhh",
   "equipment_codes": "",
   "status": "IN OPERATION",
   "status_options": [
@@ -34,22 +34,38 @@
     "SAP-8001"
   ],
   "previous_product_name": "Aspirin 100mg",
-  "previous_material_name": "Lactose Monohydrate",
+  "previous_material_name": "",
   "product_name": "Paracetamol 500mg",
-  "material_name": "Cellulose Binder",
+  "material_name": "",
   "batch_number": "B1024",
-  "sap_batch_number": "SAP-8000",
+  "sap_batch_number": "",
   "cleaning_valid_up_to": "",
   "clean_before_datetime": "",
   "updated_by": "Admin Operator",
   "updated_on": "2026-09-05",
-  "custom_rows": [],
+  "custom_rows": [
+    {
+      "label": "ghjg",
+      "value": "frrg",
+      "type": "text"
+    },
+    {
+      "label": "gfd",
+      "value": "fds",
+      "type": "text"
+    },
+    {
+      "label": "tdfg",
+      "value": "2026-09-15",
+      "type": "date"
+    }
+  ],
   "in_charge": "Admin Operator",
   "working": 0,
   "production_kits": 0,
   "board_status": "RUNNING",
   "tablet_connected": true,
-  "last_updated": "12:33:05",
+  "last_updated": "12:33:11",
   "previous_name_options": [
     "Aspirin 100mg",
     "Cough Syrup 100ml"

@@ -822,7 +822,7 @@ body.control-page::after {
    ========================================================== */
 
 body.display-mode {
-  background: #010f1d;
+  background: #001827;
   padding: 18px 20px 22px;
 }
 
@@ -842,12 +842,6 @@ body.display-mode {
   display: flex;
   align-items: center;
   gap: 16px;
-}
-
-.display-home-icon {
-  color: #42a9ff;
-  font-size: 2.8rem;
-  line-height: 1;
 }
 
 .display-edit-btn {
@@ -926,15 +920,16 @@ body.display-mode {
 }
 
 .display-board {
-  border: 1px solid rgba(60, 151, 255, 0.9);
-  background: rgba(0, 19, 35, 0.9);
-  box-shadow: inset 0 0 0 1px rgba(60, 151, 255, 0.28);
+  border: 2px solid #20b8ed;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #001a2b;
 }
 
 .display-row {
   display: grid;
   grid-template-columns: minmax(260px, 42%) minmax(0, 1fr);
-  border-bottom: 1px solid rgba(54, 132, 228, 0.8);
+  border-bottom: 1px solid #147fa9;
 }
 
 .display-row:last-child {
@@ -954,7 +949,7 @@ body.display-mode {
 
 .display-label {
   justify-content: flex-start;
-  border-right: 1px solid rgba(54, 132, 228, 0.8);
+  border-right: 1px solid #147fa9;
   background: rgba(11, 29, 44, 0.35);
   color: #dfefff;
 }
@@ -974,7 +969,7 @@ body.display-mode {
 
   .display-label {
     border-right: none;
-    border-bottom: 1px solid rgba(54, 132, 228, 0.8);
+    border-bottom: 1px solid #147fa9;
   }
 }
 
@@ -984,31 +979,29 @@ body:not(.control-page):not(.display-mode) {
   min-height: 100vh;
   place-items: center;
   padding: 24px;
-  background: #09243b;
+  background: #001827;
 }
 
 body:not(.control-page):not(.display-mode) .app-container {
+  position: relative;
   width: min(100%, 520px);
 }
 
 body:not(.control-page):not(.display-mode) .app-header {
-  margin-bottom: 18px;
-  color: #8bdcff;
+  margin-bottom: 24px;
+  color: #d9f0ff;
+  text-align: center;
 }
 
 body:not(.control-page):not(.display-mode) .brand-group {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  justify-content: center;
 }
 
-body:not(.control-page):not(.display-mode) .logo-icon {
-  display: grid;
-  width: 44px;
-  height: 44px;
-  place-items: center;
-  border: 1px solid #47b9ed;
-  color: #47b9ed;
+body:not(.control-page):not(.display-mode) .brand-title {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  letter-spacing: 0.06em;
+  line-height: 1.1;
 }
 
 body:not(.control-page):not(.display-mode) .brand-title,
@@ -1019,29 +1012,23 @@ body:not(.control-page):not(.display-mode) .card-title {
 body:not(.control-page):not(.display-mode) .brand-subtitle,
 body:not(.control-page):not(.display-mode) .card-subtitle,
 body:not(.control-page):not(.display-mode) .form-label {
-  color: #9ab6c9;
+  color: #9edcf7;
 }
 
 body:not(.control-page):not(.display-mode) .card {
-  border: 1px solid rgba(107, 202, 255, 0.35);
-  background: #10344f;
-  padding: 28px;
+  border: 2px solid #20b8ed;
+  border-radius: 12px;
+  background: #001a2b;
+  padding: 32px;
 }
 
 body:not(.control-page):not(.display-mode) .card-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
+  text-align: center;
   margin-bottom: 24px;
 }
 
-body:not(.control-page):not(.display-mode) .role-pill {
-  align-self: flex-start;
-  border: 1px solid #397a9e;
-  padding: 6px 8px;
-  color: #9edcf7;
-  font-size: 0.68rem;
-  text-transform: uppercase;
+body:not(.control-page):not(.display-mode) .card-subtitle {
+  margin-top: 6px;
 }
 
 body:not(.control-page):not(.display-mode) .form-group {
@@ -1058,13 +1045,9 @@ body:not(.control-page):not(.display-mode) .form-label {
 body:not(.control-page):not(.display-mode) .input-wrapper {
   display: flex;
   align-items: center;
-  border: 1px solid #397a9e;
-  background: #09283f;
-}
-
-body:not(.control-page):not(.display-mode) .input-icon {
-  padding-left: 12px;
-  color: #4bb9e9;
+  border: 1px solid #147fa9;
+  border-radius: 7px;
+  background: #001827;
 }
 
 body:not(.control-page):not(.display-mode) .form-input {
@@ -1077,18 +1060,61 @@ body:not(.control-page):not(.display-mode) .form-input {
   font: inherit;
 }
 
+body:not(.control-page):not(.display-mode) .form-input:focus {
+  outline: 1px solid #20b8ed;
+  outline-offset: -1px;
+}
+
 body:not(.control-page):not(.display-mode) .form-actions {
   margin-top: 22px;
 }
 
 body:not(.control-page):not(.display-mode) .btn-primary {
   width: 100%;
-  border: 0;
-  background: #138b91;
+  border: 1px solid #20b8ed;
+  border-radius: 7px;
+  background: #20b8ed;
   padding: 14px;
-  color: #f2ffff;
+  color: #001827;
   font: inherit;
   font-weight: 800;
   cursor: pointer;
 }
 
+body:not(.control-page):not(.display-mode) .feedback-banner.error {
+  border-color: rgba(255, 125, 125, 0.5);
+  color: #ffd8d8;
+}
+
+.login-cipla-brand {
+  position: fixed;
+  top: 24px;
+  right: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #20b8ed;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.login-cipla-name {
+  font-size: clamp(2rem, 3vw, 3.4rem);
+  line-height: 1;
+}
+
+.login-cipla-meta {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 600px) {
+  .login-cipla-brand {
+    position: static;
+    margin-bottom: 28px;
+  }
+
+  body:not(.control-page):not(.display-mode) .card {
+    padding: 24px;
+  }
+}

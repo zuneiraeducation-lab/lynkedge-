@@ -172,16 +172,14 @@ def login_page(message=""):
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <div class="background-glow glow-1"></div>
-    <div class="background-glow glow-2"></div>
     <main class="app-container">
+        <div class="login-cipla-brand" aria-label="Cipla Goa FDHH">
+            <div class="login-cipla-name">CIPLA</div>
+            <div class="login-cipla-meta">GOA</div>
+            <div class="login-cipla-meta">FDHH</div>
+        </div>
         <header class="app-header">
             <div class="brand-group">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                    </svg>
-                </div>
                 <div class="brand-text">
                     <h1 class="brand-title">LYNKEDGE</h1>
                     <p class="brand-subtitle">Production Linkage System</p>
@@ -194,7 +192,6 @@ def login_page(message=""):
                     <h2 class="card-title">Operator Sign In</h2>
                     <p class="card-subtitle">Authenticate to update the central Linkage Board</p>
                 </div>
-                <span class="role-pill">Secure Access</span>
             </div>
             <form method="post" action="/login" class="entry-form" autocomplete="on">
                 <div class="form-grid">
@@ -203,7 +200,6 @@ def login_page(message=""):
                             <span class="label-text">Username</span>
                         </label>
                         <div class="input-wrapper">
-                            <span class="input-icon">&#9679;</span>
                             <input type="text" id="username" name="username" class="form-input" required autocomplete="username">
                         </div>
                     </div>
@@ -212,7 +208,6 @@ def login_page(message=""):
                             <span class="label-text">Password</span>
                         </label>
                         <div class="input-wrapper">
-                            <span class="input-icon">&#9679;</span>
                             <input type="password" id="password" name="password" class="form-input" required autocomplete="current-password">
                         </div>
                     </div>
@@ -221,7 +216,6 @@ def login_page(message=""):
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">
                         <span>Sign In to LYNKEDGE</span>
-                        <span class="btn-icon">&#8594;</span>
                     </button>
                 </div>
             </form>

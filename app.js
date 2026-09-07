@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         nextInput.value = nextValue;
       }
-      valueCell.replaceChildren(nextInput);
+      valueCell.replaceChildren(nextInput, typeSelect);
     });
 
     const removeBtn = document.createElement('button');
