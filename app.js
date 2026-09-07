@@ -1,6 +1,7 @@
 /**
  * LynkEdge operator console logic.
- * Sends the full production status payload to the MYIR server and supports custom rows.
+ * Supports fully independent option lists for Product Name vs Material Name,
+ * Previous Product vs Previous Material, and Batch No. vs SAP Batch No.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -11,11 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const feedbackBanner = document.getElementById('feedbackBanner');
   const feedbackText = document.getElementById('feedbackText');
   const feedbackIcon = document.getElementById('feedbackIcon');
-  const statusOptionInput = document.getElementById('statusOptionInput');
-  const addStatusOptionBtn = document.getElementById('addStatusOptionBtn');
-  const statusPickerBtn = document.getElementById('statusPickerBtn');
-  const statusOptionsList = document.getElementById('statusOptionsList');
   const statusModal = document.getElementById('statusModal');
+  const statusModalTitle = document.getElementById('statusModalTitle');
+  const statusOptionInput = document.getElementById('statusOptionInput');
   const closeStatusModalBtn = document.getElementById('closeStatusModalBtn');
   const cancelStatusBtn = document.getElementById('cancelStatusBtn');
   const confirmStatusBtn = document.getElementById('confirmStatusBtn');
@@ -33,6 +32,57 @@ document.addEventListener('DOMContentLoaded', () => {
     updated_by: document.getElementById('updatedBy'),
     updated_on: document.getElementById('updatedOn')
   };
+
+  const pickerElements = {
+    status: {
+      select: document.getElementById('status'),
+      pickerBtn: document.getElementById('statusPickerBtn'),
+      optionsList: document.getElementById('statusOptionsList'),
+      addBtn: document.getElementById('addStatusOptionBtn')
+    },
+    previous_name: {
+      select: document.getElementById('previousNameValue'),
+      pickerBtn: document.getElementById('previousNamePickerBtn'),
+      optionsList: document.getElementById('previousNameOptionsList'),
+      addBtn: document.getElementById('addPreviousNameOptionBtn')
+    },
+    current_name: {
+      select: document.getElementById('currentNameValue'),
+      pickerBtn: document.getElementById('currentNamePickerBtn'),
+      optionsList: document.getElementById('currentNameOptionsList'),
+      addBtn: document.getElementById('addCurrentNameOptionBtn')
+    },
+    batch: {
+      select: document.getElementById('batchValue'),
+      pickerBtn: document.getElementById('batchPickerBtn'),
+      optionsList: document.getElementById('batchOptionsList'),
+      addBtn: document.getElementById('addBatchOptionBtn')
+    }
+  };
+
+  // Independent options store for all dropdown types
+  const optionsStore = {
+    status: [],
+    previous_product_name: [],
+    previous_material_name: [],
+    product_name: [],
+    material_name: [],
+    batch_number: [],
+    sap_batch_number: []
+  };
+
+  // Independent active values store
+  const valuesStore = {
+    status: '',
+    previous_product_name: '',
+    previous_material_name: '',
+    product_name: '',
+    material_name: '',
+    batch_number: '',
+    sap_batch_number: ''
+  };
+
+  let activeModalTarget = null;
 
   function showFeedback(type, message) {
     if (!feedbackBanner || !feedbackText || !feedbackIcon) return;
@@ -63,58 +113,219 @@ document.addEventListener('DOMContentLoaded', () => {
     return selected ? selected.value : '';
   }
 
-  function setSelectValue(select, value) {
+  function getActiveSubKey(pickerKey) {
+    if (pickerKey === 'status') return 'status';
+    if (pickerKey === 'previous_name') return selectedValue('previousNameType') || 'previous_product_name';
+    if (pickerKey === 'current_name') return selectedValue('currentNameType') || 'product_name';
+    if (pickerKey === 'batch') return selectedValue('batchType') || 'batch_number';
+    return pickerKey;
+  }
+
+  function getModalConfig(subKey) {
+    const configs = {
+      status: { title: 'Add new status', placeholder: 'Type new status' },
+      previous_product_name: { title: 'Add new Previous Product Name', placeholder: 'Type previous product name' },
+      previous_material_name: { title: 'Add new Previous Material Name', placeholder: 'Type previous material name' },
+      product_name: { title: 'Add new Product Name', placeholder: 'Type product name' },
+      material_name: { title: 'Add new Material Name', placeholder: 'Type material name' },
+      batch_number: { title: 'Add new Batch No.', placeholder: 'Type batch number' },
+      sap_batch_number: { title: 'Add new SAP Batch No.', placeholder: 'Type SAP batch number' }
+    };
+    return configs[subKey] || { title: 'Add new option', placeholder: 'Type option value' };
+  }
+
+  function getDefaultLabel(pickerKey) {
+    return pickerKey === 'status' ? 'Select Status' : 'Select an option';
+  }
+
+  function syncNativeSelect(select, options, selectedVal, defaultLabel) {
     if (!select) return;
-    const optionValue = String(value || '');
-    if (optionValue && !Array.from(select.options).some((option) => option.value === optionValue)) {
-      select.add(new Option(optionValue, optionValue));
-    }
-    select.value = optionValue;
+    select.innerHTML = '';
+    select.add(new Option(defaultLabel, '', true, !selectedVal));
+    options.forEach((opt) => {
+      select.add(new Option(opt, opt, false, opt === selectedVal));
+    });
+    select.value = selectedVal || '';
   }
 
-  function addStatusOption(value, select = fieldMap.status) {
-    const optionValue = String(value || '').trim();
-    if (!select || !optionValue) return false;
-    if (!Array.from(select.options).some((option) => option.value === optionValue)) {
-      select.add(new Option(optionValue, optionValue));
-    }
-    select.value = optionValue;
-    return true;
-  }
+  function renderPicker(pickerKey) {
+    const elements = pickerElements[pickerKey];
+    if (!elements || !elements.pickerBtn || !elements.optionsList) return;
 
-  function renderStatusOptions() {
-    if (!fieldMap.status || !statusOptionsList || !statusPickerBtn) return;
-    const selectedValue = fieldMap.status.value;
-    statusPickerBtn.firstChild.textContent = selectedValue || 'Select Status';
-    statusOptionsList.innerHTML = '';
-    Array.from(fieldMap.status.options).forEach((option) => {
-      if (!option.value) return;
+    const subKey = getActiveSubKey(pickerKey);
+    const options = Array.isArray(optionsStore[subKey]) ? optionsStore[subKey] : [];
+    const currentVal = valuesStore[subKey] || '';
+    const defaultLabel = getDefaultLabel(pickerKey);
+
+    // Sync underlying select
+    syncNativeSelect(elements.select, options, currentVal, defaultLabel);
+
+    // Update button text
+    elements.pickerBtn.innerHTML = '';
+    const textSpan = document.createElement('span');
+    textSpan.className = 'picker-btn-text';
+    textSpan.textContent = currentVal || defaultLabel;
+    const arrowSpan = document.createElement('span');
+    arrowSpan.textContent = '▾';
+    elements.pickerBtn.append(textSpan, arrowSpan);
+
+    // Render options list
+    elements.optionsList.innerHTML = '';
+    if (options.length === 0) {
+      const emptyRow = document.createElement('div');
+      emptyRow.className = 'status-option-row empty-option-row';
+      emptyRow.textContent = 'No options added yet';
+      emptyRow.style.padding = '8px 12px';
+      emptyRow.style.color = '#71879d';
+      emptyRow.style.fontSize = '0.85rem';
+      elements.optionsList.appendChild(emptyRow);
+      return;
+    }
+
+    options.forEach((opt) => {
       const optionRow = document.createElement('div');
       optionRow.className = 'status-option-row';
+
       const optionButton = document.createElement('button');
       optionButton.type = 'button';
       optionButton.className = 'status-option-value';
-      optionButton.textContent = option.value;
+      optionButton.textContent = opt;
+      if (opt === currentVal) {
+        optionButton.style.fontWeight = '700';
+        optionButton.style.color = '#0876ed';
+        optionButton.style.background = '#eef6fc';
+      }
+
       optionButton.addEventListener('click', () => {
-        fieldMap.status.value = option.value;
-        renderStatusOptions();
-        statusOptionsList.classList.add('hidden');
+        valuesStore[subKey] = opt;
+        renderPicker(pickerKey);
+        elements.optionsList.classList.add('hidden');
       });
+
       const deleteButton = document.createElement('button');
       deleteButton.type = 'button';
       deleteButton.className = 'status-option-delete';
       deleteButton.textContent = '×';
-      deleteButton.setAttribute('aria-label', `Remove ${option.value}`);
-      deleteButton.addEventListener('click', () => {
-        option.remove();
-        fieldMap.status.selectedIndex = 0;
-        renderStatusOptions();
+      deleteButton.setAttribute('aria-label', `Remove ${opt}`);
+      deleteButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        optionsStore[subKey] = optionsStore[subKey].filter((item) => item !== opt);
+        if (valuesStore[subKey] === opt) {
+          valuesStore[subKey] = '';
+        }
+        renderPicker(pickerKey);
       });
+
       optionRow.append(optionButton, deleteButton);
-      statusOptionsList.appendChild(optionRow);
+      elements.optionsList.appendChild(optionRow);
     });
   }
 
+  function renderAllPickers() {
+    ['status', 'previous_name', 'current_name', 'batch'].forEach(renderPicker);
+  }
+
+  // Radio button switch listeners
+  document.querySelectorAll('input[name="currentNameType"]').forEach((radio) => {
+    radio.addEventListener('change', () => {
+      renderPicker('current_name');
+    });
+  });
+
+  document.querySelectorAll('input[name="previousNameType"]').forEach((radio) => {
+    radio.addEventListener('change', () => {
+      renderPicker('previous_name');
+    });
+  });
+
+  document.querySelectorAll('input[name="batchType"]').forEach((radio) => {
+    radio.addEventListener('change', () => {
+      renderPicker('batch');
+    });
+  });
+
+  // Modal open/close handling
+  function openOptionModal(pickerKey) {
+    const subKey = getActiveSubKey(pickerKey);
+    const config = getModalConfig(subKey);
+    activeModalTarget = { pickerKey, subKey };
+
+    if (statusModalTitle) statusModalTitle.textContent = config.title;
+    if (statusOptionInput) {
+      statusOptionInput.placeholder = config.placeholder;
+      statusOptionInput.value = '';
+    }
+    if (statusModal) statusModal.classList.remove('hidden');
+    if (statusOptionInput) statusOptionInput.focus();
+  }
+
+  function closeOptionModal() {
+    if (statusModal) statusModal.classList.add('hidden');
+    if (statusOptionInput) statusOptionInput.value = '';
+    activeModalTarget = null;
+  }
+
+  if (confirmStatusBtn && statusOptionInput) {
+    confirmStatusBtn.addEventListener('click', () => {
+      if (!activeModalTarget) return;
+      const { pickerKey, subKey } = activeModalTarget;
+      const val = statusOptionInput.value.trim();
+      if (val) {
+        if (!optionsStore[subKey].includes(val)) {
+          optionsStore[subKey].push(val);
+        }
+        valuesStore[subKey] = val;
+        renderPicker(pickerKey);
+        closeOptionModal();
+      }
+    });
+
+    statusOptionInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        confirmStatusBtn.click();
+      }
+      if (event.key === 'Escape') {
+        closeOptionModal();
+      }
+    });
+  }
+
+  if (closeStatusModalBtn) closeStatusModalBtn.addEventListener('click', closeOptionModal);
+  if (cancelStatusBtn) cancelStatusBtn.addEventListener('click', closeOptionModal);
+
+  // Setup picker button toggle and add option button click
+  Object.entries(pickerElements).forEach(([key, elements]) => {
+    if (elements.pickerBtn && elements.optionsList) {
+      elements.pickerBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        Object.entries(pickerElements).forEach(([otherKey, otherElements]) => {
+          if (otherKey !== key && otherElements.optionsList) {
+            otherElements.optionsList.classList.add('hidden');
+          }
+        });
+        elements.optionsList.classList.toggle('hidden');
+      });
+    }
+
+    if (elements.addBtn) {
+      elements.addBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        openOptionModal(key);
+      });
+    }
+  });
+
+  // Close dropdowns on outside click
+  document.addEventListener('click', (event) => {
+    Object.values(pickerElements).forEach((elements) => {
+      if (elements.optionsList && !elements.optionsList.contains(event.target) && (!elements.pickerBtn || !elements.pickerBtn.contains(event.target))) {
+        elements.optionsList.classList.add('hidden');
+      }
+    });
+  });
+
+  // Custom Rows Logic
   function createCustomRow(initialLabel = '', initialValue = '') {
     const row = document.createElement('div');
     row.className = 'custom-row';
@@ -206,42 +417,61 @@ document.addEventListener('DOMContentLoaded', () => {
     return rows;
   }
 
+  function normalizeList(list) {
+    if (!Array.isArray(list)) return [];
+    return Array.from(new Set(list.map((item) => String(item || '').trim()).filter(Boolean)));
+  }
+
   function populateFormFromState(data) {
-    Object.entries(fieldMap).forEach(([key, field]) => {
-      if (key === 'previous_name_value' || key === 'current_name_value' || key === 'batch_value') return;
+    // Populate simple inputs
+    ['area', 'unit_number', 'equipment_codes', 'cleaning_valid_up_to', 'clean_before_datetime', 'updated_by', 'updated_on'].forEach((key) => {
+      const field = fieldMap[key];
       if (!field || data[key] === undefined || data[key] === null) return;
-      const value = data[key];
-      if (field.type === 'date' || field.type === 'datetime-local') {
-        field.value = value;
-      } else {
-        field.value = String(value);
+      field.value = String(data[key]);
+    });
+
+    // Populate options store
+    optionsStore.status = normalizeList(data.status_options);
+    optionsStore.product_name = normalizeList(data.product_name_options || (data.product_name ? [data.product_name] : []));
+    optionsStore.material_name = normalizeList(data.material_name_options || (data.material_name ? [data.material_name] : []));
+    optionsStore.previous_product_name = normalizeList(data.previous_product_name_options || (data.previous_product_name ? [data.previous_product_name] : []));
+    optionsStore.previous_material_name = normalizeList(data.previous_material_name_options || (data.previous_material_name ? [data.previous_material_name] : []));
+    optionsStore.batch_number = normalizeList(data.batch_number_options || (data.batch_number ? [data.batch_number] : []));
+    optionsStore.sap_batch_number = normalizeList(data.sap_batch_number_options || (data.sap_batch_number ? [data.sap_batch_number] : []));
+
+    // Populate values store
+    valuesStore.status = String(data.status || '').trim();
+    valuesStore.product_name = String(data.product_name || '').trim();
+    valuesStore.material_name = String(data.material_name || '').trim();
+    valuesStore.previous_product_name = String(data.previous_product_name || '').trim();
+    valuesStore.previous_material_name = String(data.previous_material_name || '').trim();
+    valuesStore.batch_number = String(data.batch_number || '').trim();
+    valuesStore.sap_batch_number = String(data.sap_batch_number || '').trim();
+
+    // Ensure non-empty active values exist in their respective option lists
+    Object.keys(valuesStore).forEach((key) => {
+      const val = valuesStore[key];
+      if (val && !optionsStore[key].includes(val)) {
+        optionsStore[key].push(val);
       }
     });
 
-    if (fieldMap.status) {
-      fieldMap.status.innerHTML = '';
-      fieldMap.status.add(new Option('Select Status', '', true, true));
-      const statusOptions = Array.isArray(data.status_options) ? data.status_options : [];
-      statusOptions.forEach((option) => addStatusOption(option));
-      if (data.status && statusOptions.includes(data.status)) {
-        fieldMap.status.value = data.status;
-      }
-      renderStatusOptions();
-    }
+    // Determine and set active radio buttons
+    const previousKey = valuesStore.previous_product_name ? 'previous_product_name' : (valuesStore.previous_material_name ? 'previous_material_name' : 'previous_product_name');
+    const currentKey = valuesStore.product_name ? 'product_name' : (valuesStore.material_name ? 'material_name' : 'product_name');
+    const batchKey = valuesStore.batch_number ? 'batch_number' : (valuesStore.sap_batch_number ? 'sap_batch_number' : 'batch_number');
 
-    const previousKey = data.previous_product_name ? 'previous_product_name' : 'previous_material_name';
-    const currentKey = data.product_name ? 'product_name' : 'material_name';
-    const batchKey = data.batch_number ? 'batch_number' : 'sap_batch_number';
     const previousRadio = document.querySelector(`input[name="previousNameType"][value="${previousKey}"]`);
     const currentRadio = document.querySelector(`input[name="currentNameType"][value="${currentKey}"]`);
     const batchRadio = document.querySelector(`input[name="batchType"][value="${batchKey}"]`);
     if (previousRadio) previousRadio.checked = true;
     if (currentRadio) currentRadio.checked = true;
     if (batchRadio) batchRadio.checked = true;
-    setSelectValue(fieldMap.previous_name_value, data[previousKey]);
-    setSelectValue(fieldMap.current_name_value, data[currentKey]);
-    setSelectValue(fieldMap.batch_value, data[batchKey]);
 
+    // Render all pickers with the populated independent options and values
+    renderAllPickers();
+
+    // Populate custom rows
     if (!customRowsContainer) return;
     customRowsContainer.innerHTML = '';
     const customRows = Array.isArray(data.custom_rows) ? data.custom_rows : [];
@@ -279,61 +509,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (addStatusOptionBtn && statusOptionInput) {
-    const closeStatusModal = () => {
-      if (statusModal) statusModal.classList.add('hidden');
-      statusOptionInput.value = '';
-    };
-    addStatusOptionBtn.addEventListener('click', () => {
-      if (statusModal) statusModal.classList.remove('hidden');
-      statusOptionInput.focus();
-    });
-    confirmStatusBtn.addEventListener('click', () => {
-      if (addStatusOption(statusOptionInput.value)) {
-        renderStatusOptions();
-        closeStatusModal();
-      }
-    });
-    closeStatusModalBtn.addEventListener('click', closeStatusModal);
-    cancelStatusBtn.addEventListener('click', closeStatusModal);
-    statusOptionInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') confirmStatusBtn.click();
-      if (event.key === 'Escape') closeStatusModal();
-    });
-  }
-
-  if (statusPickerBtn && statusOptionsList) {
-    statusPickerBtn.addEventListener('click', () => {
-      statusOptionsList.classList.toggle('hidden');
-    });
-  }
-
   if (form) {
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       hideFeedback();
 
+      const activePreviousKey = getActiveSubKey('previous_name');
+      const activeCurrentKey = getActiveSubKey('current_name');
+      const activeBatchKey = getActiveSubKey('batch');
+
       const payload = {
         area: fieldMap.area ? fieldMap.area.value.trim() : '',
         unit_number: fieldMap.unit_number ? fieldMap.unit_number.value.trim() : '',
         equipment_codes: fieldMap.equipment_codes ? fieldMap.equipment_codes.value.trim() : '',
-        status: fieldMap.status ? fieldMap.status.value.trim() : '',
-        previous_product_name: selectedValue('previousNameType') === 'previous_product_name' && fieldMap.previous_name_value ? fieldMap.previous_name_value.value.trim() : '',
-        previous_material_name: selectedValue('previousNameType') === 'previous_material_name' && fieldMap.previous_name_value ? fieldMap.previous_name_value.value.trim() : '',
-        product_name: selectedValue('currentNameType') === 'product_name' && fieldMap.current_name_value ? fieldMap.current_name_value.value.trim() : '',
-        material_name: selectedValue('currentNameType') === 'material_name' && fieldMap.current_name_value ? fieldMap.current_name_value.value.trim() : '',
-        batch_number: selectedValue('batchType') === 'batch_number' && fieldMap.batch_value ? fieldMap.batch_value.value.trim() : '',
-        sap_batch_number: selectedValue('batchType') === 'sap_batch_number' && fieldMap.batch_value ? fieldMap.batch_value.value.trim() : '',
+        status: valuesStore.status || '',
+        status_options: optionsStore.status,
+        product_name_options: optionsStore.product_name,
+        material_name_options: optionsStore.material_name,
+        previous_product_name_options: optionsStore.previous_product_name,
+        previous_material_name_options: optionsStore.previous_material_name,
+        batch_number_options: optionsStore.batch_number,
+        sap_batch_number_options: optionsStore.sap_batch_number,
+        previous_product_name: activePreviousKey === 'previous_product_name' ? (valuesStore.previous_product_name || '') : '',
+        previous_material_name: activePreviousKey === 'previous_material_name' ? (valuesStore.previous_material_name || '') : '',
+        product_name: activeCurrentKey === 'product_name' ? (valuesStore.product_name || '') : '',
+        material_name: activeCurrentKey === 'material_name' ? (valuesStore.material_name || '') : '',
+        batch_number: activeBatchKey === 'batch_number' ? (valuesStore.batch_number || '') : '',
+        sap_batch_number: activeBatchKey === 'sap_batch_number' ? (valuesStore.sap_batch_number || '') : '',
         cleaning_valid_up_to: fieldMap.cleaning_valid_up_to ? fieldMap.cleaning_valid_up_to.value : '',
         clean_before_datetime: fieldMap.clean_before_datetime ? fieldMap.clean_before_datetime.value : '',
         updated_by: fieldMap.updated_by ? fieldMap.updated_by.value.trim() : '',
         updated_on: fieldMap.updated_on ? fieldMap.updated_on.value : '',
         custom_rows: getCustomRows(),
-        status_options: Array.from(fieldMap.status ? fieldMap.status.options : []).map((option) => option.value).filter(Boolean),
         in_charge: fieldMap.updated_by ? fieldMap.updated_by.value.trim() : '',
         working: 0,
         production_kits: 0,
-        batch_number_used: fieldMap.batch_value ? fieldMap.batch_value.value.trim() : ''
+        batch_number_used: valuesStore[activeBatchKey] || ''
       };
 
       if (!payload.updated_by) {
@@ -344,7 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!payload.batch_number && !payload.sap_batch_number) {
         showFeedback('error', 'Batch No. or SAP Batch No. is required.');
-        if (fieldMap.batch_value) fieldMap.batch_value.focus();
+        if (pickerElements.batch.pickerBtn) pickerElements.batch.pickerBtn.focus();
         return;
       }
 

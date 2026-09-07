@@ -1,17 +1,44 @@
 {
   "area": "COMPRESSION-VII",
   "unit_number": "",
-  "equipment_codes": "TM-061, TM-021, GA-T-AC-0410",
+  "equipment_codes": "",
   "status": "IN OPERATION",
   "status_options": [
-    "IN OPERATION"
+    "IN OPERATION",
+    "CLEANED"
   ],
-  "previous_product_name": "",
-  "previous_material_name": "",
+  "product_name_options": [
+    "Paracetamol 500mg",
+    "Amoxicillin 250mg",
+    "Ibuprofen 400mg"
+  ],
+  "material_name_options": [
+    "Cellulose Binder",
+    "Corn Starch",
+    "Magnesium Stearate"
+  ],
+  "previous_product_name_options": [
+    "Aspirin 100mg",
+    "Paracetamol Syrup"
+  ],
+  "previous_material_name_options": [
+    "Lactose Monohydrate",
+    "Talc Powder"
+  ],
+  "batch_number_options": [
+    "B1024",
+    "B1025"
+  ],
+  "sap_batch_number_options": [
+    "SAP-8000",
+    "SAP-8001"
+  ],
+  "previous_product_name": "Aspirin 100mg",
+  "previous_material_name": "Lactose Monohydrate",
   "product_name": "Paracetamol 500mg",
-  "material_name": "",
+  "material_name": "Cellulose Binder",
   "batch_number": "B1024",
-  "sap_batch_number": "",
+  "sap_batch_number": "SAP-8000",
   "cleaning_valid_up_to": "",
   "clean_before_datetime": "",
   "updated_by": "Admin Operator",
@@ -22,5 +49,20 @@
   "production_kits": 0,
   "board_status": "RUNNING",
   "tablet_connected": true,
-  "last_updated": "11:56:27"
+  "last_updated": "12:33:05",
+  "previous_name_options": [
+    "Aspirin 100mg",
+    "Cough Syrup 100ml"
+  ],
+  "current_name_options": [
+    "Paracetamol 500mg",
+    "Amoxicillin 250mg",
+    "Ibuprofen 400mg"
+  ],
+  "batch_options": [
+    "B1024",
+    "B1025",
+    "B1026",
+    "SAP-9001"
+  ]
 }

@@ -26,6 +26,12 @@ DEFAULT_STATE = {
     "equipment_codes": "TM-061, TM-021, GA-T-AC-0410",
     "status": "",
     "status_options": [],
+    "product_name_options": [],
+    "material_name_options": [],
+    "previous_product_name_options": [],
+    "previous_material_name_options": [],
+    "batch_number_options": [],
+    "sap_batch_number_options": [],
     "previous_product_name": "",
     "previous_material_name": "",
     "product_name": "",
@@ -84,6 +90,12 @@ def load_state():
         state.update(saved_state)
         state["custom_rows"] = normalize_custom_rows(state.get("custom_rows", []))
         state["status_options"] = normalize_status_options(state.get("status_options", []))
+        state["product_name_options"] = normalize_status_options(state.get("product_name_options", []))
+        state["material_name_options"] = normalize_status_options(state.get("material_name_options", []))
+        state["previous_product_name_options"] = normalize_status_options(state.get("previous_product_name_options", []))
+        state["previous_material_name_options"] = normalize_status_options(state.get("previous_material_name_options", []))
+        state["batch_number_options"] = normalize_status_options(state.get("batch_number_options", []))
+        state["sap_batch_number_options"] = normalize_status_options(state.get("sap_batch_number_options", []))
         return state
     except (OSError, ValueError, TypeError):
         return DEFAULT_STATE.copy()
@@ -276,6 +288,12 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             status_options = normalize_status_options(data.get("status_options", []))
             if isinstance(status, str) and status.strip() and status.strip() not in status_options:
                 status_options.append(status.strip())
+            product_name_options = normalize_status_options(data.get("product_name_options", []))
+            material_name_options = normalize_status_options(data.get("material_name_options", []))
+            previous_product_name_options = normalize_status_options(data.get("previous_product_name_options", []))
+            previous_material_name_options = normalize_status_options(data.get("previous_material_name_options", []))
+            batch_number_options = normalize_status_options(data.get("batch_number_options", []))
+            sap_batch_number_options = normalize_status_options(data.get("sap_batch_number_options", []))
             previous_product_name = data.get("previous_product_name", "")
             previous_material_name = data.get("previous_material_name", "")
             product_name = data.get("product_name", "")
@@ -287,6 +305,19 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             updated_by = data.get("updated_by", "")
             updated_on = data.get("updated_on", "")
             custom_rows = normalize_custom_rows(data.get("custom_rows", []))
+
+            if product_name and product_name.strip() and product_name.strip() not in product_name_options:
+                product_name_options.append(product_name.strip())
+            if material_name and material_name.strip() and material_name.strip() not in material_name_options:
+                material_name_options.append(material_name.strip())
+            if previous_product_name and previous_product_name.strip() and previous_product_name.strip() not in previous_product_name_options:
+                previous_product_name_options.append(previous_product_name.strip())
+            if previous_material_name and previous_material_name.strip() and previous_material_name.strip() not in previous_material_name_options:
+                previous_material_name_options.append(previous_material_name.strip())
+            if batch_number and batch_number.strip() and batch_number.strip() not in batch_number_options:
+                batch_number_options.append(batch_number.strip())
+            if sap_batch_number and sap_batch_number.strip() and sap_batch_number.strip() not in sap_batch_number_options:
+                sap_batch_number_options.append(sap_batch_number.strip())
 
             in_charge = data.get("in_charge", updated_by)
             if in_charge is None:
@@ -325,6 +356,12 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
                     "equipment_codes": str(equipment_codes or "").strip(),
                     "status": str(status or "").strip(),
                     "status_options": status_options,
+                    "product_name_options": product_name_options,
+                    "material_name_options": material_name_options,
+                    "previous_product_name_options": previous_product_name_options,
+                    "previous_material_name_options": previous_material_name_options,
+                    "batch_number_options": batch_number_options,
+                    "sap_batch_number_options": sap_batch_number_options,
                     "previous_product_name": str(previous_product_name or "").strip(),
                     "previous_material_name": str(previous_material_name or "").strip(),
                     "product_name": str(product_name or "").strip(),

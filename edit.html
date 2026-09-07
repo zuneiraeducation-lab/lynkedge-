@@ -52,7 +52,10 @@
               <option value="" selected disabled>Select Status</option>
             </select>
             <div class="status-picker">
-              <button type="button" id="statusPickerBtn" class="status-picker-btn">Select Status<span>▾</span></button>
+              <button type="button" id="statusPickerBtn" class="status-picker-btn">
+                <span class="picker-btn-text">Select Status</span>
+                <span class="picker-arrow">▾</span>
+              </button>
               <div id="statusOptionsList" class="status-options-list hidden"></div>
             </div>
             <button type="button" id="addStatusOptionBtn" class="add-status-btn">+ Add option</button>
@@ -66,9 +69,19 @@
               <span><input type="radio" name="previousNameType" value="previous_material_name"> (Previous Material Name)</span>
             </span>
           </label>
-          <select id="previousNameValue" class="field-box field-select">
-            <option value="">&lt;---select an option---&gt;</option>
-          </select>
+          <div class="status-controls">
+            <select id="previousNameValue" name="previous_name_value" class="status-native-select">
+              <option value="" selected disabled>Select an option</option>
+            </select>
+            <div class="status-picker" id="previousNamePicker">
+              <button type="button" id="previousNamePickerBtn" class="status-picker-btn">
+                <span class="picker-btn-text">Select an option</span>
+                <span class="picker-arrow">▾</span>
+              </button>
+              <div id="previousNameOptionsList" class="status-options-list hidden"></div>
+            </div>
+            <button type="button" id="addPreviousNameOptionBtn" class="add-status-btn">+ Add option</button>
+          </div>
         </div>
 
         <div class="entry-row option-row">
@@ -78,21 +91,41 @@
               <span><input type="radio" name="currentNameType" value="material_name"> (Material Name)</span>
             </span>
           </label>
-          <select id="currentNameValue" class="field-box field-select">
-            <option value="">&lt;---select an option---&gt;</option>
-          </select>
+          <div class="status-controls">
+            <select id="currentNameValue" name="current_name_value" class="status-native-select">
+              <option value="" selected disabled>Select an option</option>
+            </select>
+            <div class="status-picker" id="currentNamePicker">
+              <button type="button" id="currentNamePickerBtn" class="status-picker-btn">
+                <span class="picker-btn-text">Select an option</span>
+                <span class="picker-arrow">▾</span>
+              </button>
+              <div id="currentNameOptionsList" class="status-options-list hidden"></div>
+            </div>
+            <button type="button" id="addCurrentNameOptionBtn" class="add-status-btn">+ Add option</button>
+          </div>
         </div>
 
-        <div class="entry-row">
+        <div class="entry-row option-row">
           <label class="entry-label radio-label">
             <span class="radio-options">
               <span><input type="radio" name="batchType" value="batch_number" checked> (Batch No.)</span>
               <span><input type="radio" name="batchType" value="sap_batch_number"> (SAP Batch No.)</span>
             </span>
           </label>
-          <select id="batchValue" class="field-box field-select">
-            <option value="">&lt;---select an option---&gt;</option>
-          </select>
+          <div class="status-controls">
+            <select id="batchValue" name="batch_value" class="status-native-select">
+              <option value="" selected disabled>Select an option</option>
+            </select>
+            <div class="status-picker" id="batchPicker">
+              <button type="button" id="batchPickerBtn" class="status-picker-btn">
+                <span class="picker-btn-text">Select an option</span>
+                <span class="picker-arrow">▾</span>
+              </button>
+              <div id="batchOptionsList" class="status-options-list hidden"></div>
+            </div>
+            <button type="button" id="addBatchOptionBtn" class="add-status-btn">+ Add option</button>
+          </div>
         </div>
 
         <div class="entry-row">
