@@ -1,44 +1,30 @@
 {
   "area": "COMPRESSION-VII",
-  "unit_number": "fdhh",
+  "unit_number": "unit vii",
   "equipment_codes": "123456",
-  "status": "IN OPERATION",
+  "status": "CLEANED",
   "status_options": [
     "IN OPERATION",
     "CLEANED"
   ],
-  "product_name_options": [
-    "Paracetamol 500mg",
-    "Amoxicillin 250mg",
-    "Ibuprofen 400mg"
-  ],
+  "product_name_options": [],
   "material_name_options": [
-    "Cellulose Binder",
-    "Corn Starch",
-    "Magnesium Stearate"
+    "Corn Starch"
   ],
   "previous_product_name_options": [
-    "Aspirin 100mg",
-    "Paracetamol Syrup"
+    "Aspirin 100mg"
   ],
-  "previous_material_name_options": [
-    "Lactose Monohydrate",
-    "Talc Powder"
-  ],
-  "batch_number_options": [
-    "B1024",
-    "B1025"
-  ],
+  "previous_material_name_options": [],
+  "batch_number_options": [],
   "sap_batch_number_options": [
-    "SAP-8000",
     "SAP-8001"
   ],
-  "previous_product_name": "Aspirin 100mg",
+  "previous_product_name": "",
   "previous_material_name": "",
   "previous_name_type": "previous_product_name",
   "product_name": "",
-  "material_name": "Corn Starch",
-  "current_name_type": "material_name",
+  "material_name": "",
+  "current_name_type": "product_name",
   "batch_number": "",
   "sap_batch_number": "SAP-8001",
   "batch_type": "sap_batch_number",
@@ -47,7 +33,15 @@
   "updated_by": "Zuneira",
   "updated_on": "2026-09-05",
   "custom_rows": [],
-  "field_labels": {},
+  "field_labels": {
+    "area": "Area",
+    "equipment_codes": "Fixed Equipment & Accessories Code",
+    "status": "Status",
+    "cleaning_valid_up_to": "Cleaning Valid up to",
+    "clean_before_datetime": "Equipment/Accessories/Area clean before date and time",
+    "updated_by": "Status updated by",
+    "updated_on": "Status updated on"
+  },
   "selectable_fields": {
     "previous_name": [
       {
@@ -80,14 +74,41 @@
       }
     ]
   },
-  "selectable_field_values": {},
-  "selectable_field_options": {},
+  "selectable_field_values": {
+    "status": "CLEANED",
+    "previous_product_name": "",
+    "previous_material_name": "",
+    "product_name": "",
+    "material_name": "",
+    "batch_number": "",
+    "sap_batch_number": "SAP-8001",
+    "previous_name_fgh": ""
+  },
+  "selectable_field_options": {
+    "status": [
+      "IN OPERATION",
+      "CLEANED"
+    ],
+    "previous_product_name": [
+      "Aspirin 100mg"
+    ],
+    "previous_material_name": [],
+    "product_name": [],
+    "material_name": [
+      "Corn Starch"
+    ],
+    "batch_number": [],
+    "sap_batch_number": [
+      "SAP-8001"
+    ],
+    "previous_name_fgh": []
+  },
   "in_charge": "Zuneira",
   "working": 0,
   "production_kits": 0,
   "board_status": "RUNNING",
   "tablet_connected": true,
-  "last_updated": "11:35:58",
+  "last_updated": "12:49:41",
   "previous_name_options": [
     "Aspirin 100mg",
     "Cough Syrup 100ml"

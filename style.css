@@ -234,6 +234,18 @@ body.control-page::after {
   background: rgba(208, 237, 249, 0.72);
 }
 
+.field-label-editor {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #9abfd3;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.82);
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  padding: 3px 5px;
+}
+
 .field-box,
 .field-input,
 .field-select {
@@ -578,6 +590,28 @@ body.control-page::after {
   white-space: nowrap;
 }
 
+.radio-options > span {
+  flex-wrap: nowrap;
+}
+
+.radio-options > span > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selectable-field-label-input {
+  width: min(220px, 100%);
+  min-width: 0;
+  border: 1px solid #9abfd3;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.82);
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  padding: 2px 5px;
+}
+
 .radio-label input[type="radio"] {
   width: 14px;
   height: 14px;
@@ -763,8 +797,7 @@ body.control-page::after {
 }
 
 .manage-field-names-btn,
-.field-name-action,
-.field-name-add {
+.field-name-control {
   border: 0;
   border-radius: 6px;
   cursor: pointer;
@@ -772,28 +805,26 @@ body.control-page::after {
   font-weight: 800;
 }
 
-.field-name-action {
-  width: 24px;
-  height: 24px;
-  margin-left: 4px;
-  padding: 0;
-  font-size: 1rem;
+.field-name-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 5px;
+}
+
+.field-name-control {
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 0.76rem;
   line-height: 1;
 }
 
-.field-name-add {
-  display: block;
-  width: 30px;
-  height: 28px;
-  margin-top: 4px;
-  padding: 0;
-  background: #dff6e9;
-  color: #14824e;
-  font-size: 1.25rem;
-  line-height: 1;
-}
-
-.field-name-edit {
+.field-name-control.field-name-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: #dff6e9;
   color: #14824e;
 }

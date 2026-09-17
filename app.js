@@ -161,65 +161,87 @@ document.addEventListener('DOMContentLoaded', () => {
       radio.value = field.key;
       radio.checked = field.key === currentKey || (!currentKey && index === 0);
       const label = document.createElement('span');
-      label.textContent = ` (${field.label})`;
-      item.append(radio, label);
-
-      if (permissions.manage_options && fieldNamesEditMode) {
-        const rename = document.createElement('button');
-        rename.type = 'button';
-        rename.className = 'field-name-action field-name-edit';
-        rename.textContent = '✎';
-        rename.title = 'Edit field name';
-        rename.setAttribute('aria-label', `Edit ${field.label}`);
-        rename.addEventListener('click', () => {
-          const nextLabel = window.prompt('Field name', field.label);
-          if (nextLabel && nextLabel.trim()) {
-            field.label = nextLabel.trim();
-            renderSelectableFields(group);
-          }
+      label.className = 'selectable-field-label';
+      if (fieldNamesEditMode && permissions.edit_field_names) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'selectable-field-label-input';
+        input.value = field.label;
+        input.dataset.fieldKey = field.key;
+        input.setAttribute('aria-label', `Edit ${field.label} field name`);
+        input.addEventListener('input', () => {
+          field.label = input.value;
         });
-        const remove = document.createElement('button');
-        remove.type = 'button';
-        remove.className = 'field-name-action field-name-remove';
-        remove.textContent = '×';
-        remove.title = 'Remove field name';
-        remove.setAttribute('aria-label', `Remove ${field.label}`);
-        remove.addEventListener('click', () => {
-          if (selectableFields[group].length <= 1) return;
-          selectableFields[group] = selectableFields[group].filter((item) => item.key !== field.key);
-          renderSelectableFields(group);
-          renderPicker(config.picker);
-        });
-        item.append(rename, remove);
+        label.appendChild(input);
+      } else {
+        label.textContent = ` ${field.label}`;
       }
+      item.append(radio, label);
       container.appendChild(item);
     });
+
     if (permissions.manage_options && fieldNamesEditMode) {
-      const add = document.createElement('button');
-      add.type = 'button';
-      add.className = 'field-name-add';
-      add.textContent = '+';
-      add.title = 'Add field name';
-      add.setAttribute('aria-label', 'Add field name');
-      add.addEventListener('click', () => {
-        const label = window.prompt('New field name');
-        if (!label || !label.trim()) return;
-        const keyBase = `${group}_${label.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_')}`;
-        let key = keyBase;
-        let suffix = 2;
-        while (selectableFields[group].some((item) => item.key === key)) key = `${keyBase}_${suffix++}`;
-        selectableFields[group].push({ key, label: label.trim() });
-        optionsStore[key] = [];
-        valuesStore[key] = '';
+      const controls = document.createElement('div');
+      controls.className = 'field-name-controls';
+
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'field-name-control field-name-remove';
+      remove.textContent = '× Remove';
+      remove.title = 'Delete selected field name';
+      remove.addEventListener('click', () => {
+        const selectedField = selectableFields[group].find((field) => field.key === getActiveSubKey(config.picker));
+        if (!selectedField || selectableFields[group].length <= 1) return;
+        selectableFields[group] = selectableFields[group].filter((field) => field.key !== selectedField.key);
         renderSelectableFields(group);
         renderPicker(config.picker);
       });
-      container.appendChild(add);
+
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.className = 'field-name-control field-name-add';
+      add.textContent = '+ Add field name';
+      add.title = 'Add field name';
+      add.addEventListener('click', () => {
+        openFieldNameModal(group);
+      });
+
+      controls.append(remove, add);
+      container.appendChild(controls);
     }
   }
 
   function renderAllSelectableFields() {
     Object.keys(fieldGroupConfig).forEach(renderSelectableFields);
+  }
+
+  function syncSelectableFieldLabels() {
+    document.querySelectorAll('.selectable-field-label-input').forEach((input) => {
+      Object.values(selectableFields).forEach((group) => {
+        const field = group.find((item) => item.key === input.dataset.fieldKey);
+        if (field && input.value.trim()) field.label = input.value.trim();
+      });
+    });
+  }
+
+  function renderStandardFieldEditors(editing) {
+    document.querySelectorAll('[data-label-key]').forEach((label) => {
+      if (fieldGroupConfig[label.dataset.labelKey]) return;
+      const editor = label.querySelector('.field-label-editor');
+      if (editing && !editor) {
+        const currentText = label.textContent.replace(/\s*:\s*$/, '').trim();
+        label.textContent = '';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'field-label-editor';
+        input.value = currentText;
+        input.setAttribute('aria-label', `Edit ${currentText} field name`);
+        label.appendChild(input);
+      } else if (!editing && editor) {
+        const nextText = editor.value.trim() || editor.defaultValue;
+        label.textContent = `${nextText} :`;
+      }
+    });
   }
 
   function getModalConfig(subKey) {
@@ -341,11 +363,22 @@ document.addEventListener('DOMContentLoaded', () => {
   function openOptionModal(pickerKey) {
     const subKey = getActiveSubKey(pickerKey);
     const config = getModalConfig(subKey);
-    activeModalTarget = { pickerKey, subKey };
+    activeModalTarget = { type: 'option', pickerKey, subKey };
 
     if (statusModalTitle) statusModalTitle.textContent = config.title;
     if (statusOptionInput) {
       statusOptionInput.placeholder = config.placeholder;
+      statusOptionInput.value = '';
+    }
+    if (statusModal) statusModal.classList.remove('hidden');
+    if (statusOptionInput) statusOptionInput.focus();
+  }
+
+  function openFieldNameModal(group) {
+    activeModalTarget = { type: 'field-name', group };
+    if (statusModalTitle) statusModalTitle.textContent = 'Add new field name';
+    if (statusOptionInput) {
+      statusOptionInput.placeholder = 'Type new field name';
       statusOptionInput.value = '';
     }
     if (statusModal) statusModal.classList.remove('hidden');
@@ -361,9 +394,22 @@ document.addEventListener('DOMContentLoaded', () => {
   if (confirmStatusBtn && statusOptionInput) {
     confirmStatusBtn.addEventListener('click', () => {
       if (!activeModalTarget) return;
-      const { pickerKey, subKey } = activeModalTarget;
       const val = statusOptionInput.value.trim();
-      if (val) {
+      if (val && activeModalTarget.type === 'field-name') {
+        const { group } = activeModalTarget;
+        const config = fieldGroupConfig[group];
+        const keyBase = `${group}_${val.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`;
+        let key = keyBase;
+        let suffix = 2;
+        while (selectableFields[group].some((field) => field.key === key)) key = `${keyBase}_${suffix++}`;
+        selectableFields[group].push({ key, label: val });
+        optionsStore[key] = [];
+        valuesStore[key] = '';
+        renderSelectableFields(group);
+        renderPicker(config.picker);
+        closeOptionModal();
+      } else if (val && activeModalTarget.type === 'option') {
+        const { pickerKey, subKey } = activeModalTarget;
         if (!optionsStore[subKey].includes(val)) {
           optionsStore[subKey].push(val);
         }
@@ -529,8 +575,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('[data-label-key]').forEach((label) => {
       const key = label.dataset.labelKey;
-      if (data.field_labels && typeof data.field_labels[key] === 'string' && !label.querySelector('input, span')) {
-        label.textContent = data.field_labels[key];
+      if (fieldGroupConfig[key]) return;
+      if (data.field_labels && typeof data.field_labels[key] === 'string') {
+        label.textContent = `${data.field_labels[key].replace(/\s*:\s*$/, '').trim()} :`;
       }
     });
 
@@ -644,10 +691,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (editLabelsBtn) {
     editLabelsBtn.addEventListener('click', () => {
       if (!permissions.edit_field_names) return;
+      syncSelectableFieldLabels();
       fieldNamesEditMode = !fieldNamesEditMode;
       editLabelsBtn.textContent = fieldNamesEditMode ? 'Done editing field names' : 'Edit field names';
       editLabelsBtn.setAttribute('aria-pressed', String(fieldNamesEditMode));
       renderAllSelectableFields();
+      renderStandardFieldEditors(fieldNamesEditMode);
     });
   }
 
@@ -704,6 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const activePreviousKey = getActiveSubKey('previous_name');
       const activeCurrentKey = getActiveSubKey('current_name');
       const activeBatchKey = getActiveSubKey('batch');
+      syncSelectableFieldLabels();
 
       const payload = {
         area: fieldMap.area ? fieldMap.area.value.trim() : '',
@@ -739,8 +789,12 @@ document.addEventListener('DOMContentLoaded', () => {
         selectable_field_values: Object.fromEntries(Object.keys(valuesStore).map((key) => [key, valuesStore[key]])),
         selectable_field_options: Object.fromEntries(Object.keys(optionsStore).map((key) => [key, optionsStore[key]])),
         field_labels: Object.fromEntries(Array.from(document.querySelectorAll('[data-label-key]'))
-          .filter((label) => !label.querySelector('input, span'))
-          .map((label) => [label.dataset.labelKey, label.textContent.trim()]))
+          .filter((label) => !fieldGroupConfig[label.dataset.labelKey])
+          .map((label) => {
+            const editor = label.querySelector('.field-label-editor');
+            const value = editor ? editor.value : label.textContent;
+            return [label.dataset.labelKey, value.replace(/\s*:\s*$/, '').trim()];
+          }))
       };
 
       if (!payload.updated_by) {
