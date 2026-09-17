@@ -6,6 +6,7 @@ import os
 import secrets
 import tempfile
 import threading
+import hashlib
 from datetime import datetime
 from http import cookies
 from urllib.parse import parse_qs, urlparse
@@ -18,7 +19,26 @@ DATA_FILE = os.environ.get(
 )
 USERNAME = os.environ.get("LYNKEDGE_USERNAME", "admin")
 PASSWORD = os.environ.get("LYNKEDGE_PASSWORD", "admin")
+AUTH_FILE = os.environ.get(
+    "LYNKEDGE_AUTH_FILE",
+    os.path.join(DIRECTORY, "lynkedge_users.json")
+)
 MAX_BODY_BYTES = 16 * 1024
+
+PERMISSION_LEVELS = {
+    "basic_update": 1,
+    "manage_options": 2,
+    "edit_field_names": 2,
+    "edit_unit_info": 2,
+    "manage_rows": 3,
+    "manage_structure": 3,
+    "manage_accounts": 3,
+}
+DEFAULT_ACCOUNTS = {
+    "entry": {"level": 1, "password": "entry123"},
+    "control": {"level": 2, "password": "control123"},
+    "admin": {"level": 3, "password": "admin123"},
+}
 
 DEFAULT_STATE = {
     "area": "COMPRESSION-VII",
@@ -46,6 +66,23 @@ DEFAULT_STATE = {
     "updated_by": "",
     "updated_on": "",
     "custom_rows": [],
+    "field_labels": {},
+    "selectable_fields": {
+        "previous_name": [
+            {"key": "previous_product_name", "label": "Previous Product Name"},
+            {"key": "previous_material_name", "label": "Previous Material Name"},
+        ],
+        "current_name": [
+            {"key": "product_name", "label": "Product Name"},
+            {"key": "material_name", "label": "Material Name"},
+        ],
+        "batch": [
+            {"key": "batch_number", "label": "Batch No."},
+            {"key": "sap_batch_number", "label": "SAP Batch No."},
+        ],
+    },
+    "selectable_field_values": {},
+    "selectable_field_options": {},
     "in_charge": "Ahmed",
     "working": 12,
     "production_kits": 450,
@@ -54,7 +91,61 @@ DEFAULT_STATE = {
     "last_updated": datetime.now().strftime("%H:%M:%S")
 }
 STATE_LOCK = threading.Lock()
-SESSIONS = set()
+SESSIONS = {}
+AUTH_LOCK = threading.Lock()
+
+
+def hash_password(password, salt=None):
+    salt = salt or secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", str(password).encode("utf-8"), salt.encode("utf-8"), 120000)
+    return {"salt": salt, "hash": digest.hex()}
+
+
+def password_matches(password, stored):
+    if not isinstance(stored, dict) or not stored.get("salt") or not stored.get("hash"):
+        return False
+    candidate = hash_password(password, stored["salt"])["hash"]
+    return hmac_compare(candidate, stored["hash"])
+
+
+def load_accounts():
+    try:
+        with open(AUTH_FILE, "r", encoding="utf-8") as auth_file:
+            accounts = json.load(auth_file)
+        if isinstance(accounts, dict) and len(accounts) == 3 and all(
+            isinstance(item, dict) and item.get("level") in (1, 2, 3) and item.get("password")
+            for item in accounts.values()
+        ):
+            return accounts
+    except (OSError, ValueError, TypeError):
+        pass
+    accounts = {}
+    for username, account in DEFAULT_ACCOUNTS.items():
+        accounts[username] = {"level": account["level"], "password": hash_password(account["password"])}
+    save_accounts(accounts)
+    return accounts
+
+
+def save_accounts(accounts):
+    directory = os.path.dirname(os.path.abspath(AUTH_FILE))
+    os.makedirs(directory, exist_ok=True)
+    file_descriptor, temporary_file = tempfile.mkstemp(prefix="lynkedge-users-", suffix=".tmp", dir=directory)
+    try:
+        with os.fdopen(file_descriptor, "w", encoding="utf-8") as auth_file:
+            json.dump(accounts, auth_file, indent=2)
+            auth_file.write("\n")
+            auth_file.flush()
+            os.fsync(auth_file.fileno())
+        os.replace(temporary_file, AUTH_FILE)
+    except Exception:
+        try:
+            os.unlink(temporary_file)
+        except OSError:
+            pass
+        raise
+
+
+ACCOUNTS = load_accounts()
 
 
 def normalize_custom_rows(value):
@@ -85,6 +176,34 @@ def normalize_status_options(value):
     ))
 
 
+DEFAULT_SELECTABLE_FIELDS = DEFAULT_STATE["selectable_fields"]
+
+
+def normalize_selectable_fields(value):
+    if not isinstance(value, dict):
+        value = {}
+    normalized = {}
+    for group, defaults in DEFAULT_SELECTABLE_FIELDS.items():
+        items = value.get(group, defaults)
+        if not isinstance(items, list):
+            items = defaults
+        group_items = []
+        used_keys = set()
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            key = item.get("key")
+            label = item.get("label")
+            if not isinstance(key, str) or not key.strip() or key in used_keys:
+                continue
+            if not isinstance(label, str) or not label.strip():
+                continue
+            group_items.append({"key": key.strip(), "label": label.strip()})
+            used_keys.add(key)
+        normalized[group] = group_items or [dict(item) for item in defaults]
+    return normalized
+
+
 def normalize_selection(value, allowed, fallback):
     return value if value in allowed else fallback
 
@@ -96,6 +215,13 @@ def load_state():
         state = DEFAULT_STATE.copy()
         state.update(saved_state)
         state["custom_rows"] = normalize_custom_rows(state.get("custom_rows", []))
+        state["selectable_fields"] = normalize_selectable_fields(state.get("selectable_fields"))
+        state["selectable_field_values"] = state.get("selectable_field_values", {}) if isinstance(state.get("selectable_field_values", {}), dict) else {}
+        state["selectable_field_options"] = {
+            str(key): normalize_status_options(value)
+            for key, value in state.get("selectable_field_options", {}).items()
+            if isinstance(key, str)
+        } if isinstance(state.get("selectable_field_options", {}), dict) else {}
         state["status_options"] = normalize_status_options(state.get("status_options", []))
         state["product_name_options"] = normalize_status_options(state.get("product_name_options", []))
         state["material_name_options"] = normalize_status_options(state.get("material_name_options", []))
@@ -176,6 +302,33 @@ def valid_session(handler):
     return session is not None and session.value in SESSIONS
 
 
+def session_account(handler):
+    session_cookie = cookies.SimpleCookie(handler.headers.get("Cookie", ""))
+    session = session_cookie.get("lynkedge_session")
+    if session is None:
+        return None
+    username = SESSIONS.get(session.value)
+    if username is None:
+        return None
+    return ACCOUNTS.get(username)
+
+
+def has_permission(account, permission):
+    return bool(account and account.get("level", 0) >= PERMISSION_LEVELS[permission])
+
+
+def permission_payload(account):
+    return {
+        "basic_update": has_permission(account, "basic_update"),
+        "manage_options": has_permission(account, "manage_options"),
+        "edit_field_names": has_permission(account, "edit_field_names"),
+        "edit_unit_info": has_permission(account, "edit_unit_info"),
+        "manage_rows": has_permission(account, "manage_rows"),
+        "manage_structure": has_permission(account, "manage_structure"),
+        "manage_accounts": has_permission(account, "manage_accounts"),
+    }
+
+
 def login_page(message=""):
         message_html = "" if not message else (
                 "<div class=\"feedback-banner error\" role=\"alert\">{}</div>".format(
@@ -211,7 +364,7 @@ def login_page(message=""):
         <section class="card data-card">
             <div class="card-header">
                 <div>
-                    <h2 class="card-title">Operator Sign In</h2>
+                        <h2 class="card-title">Secure Sign In</h2>
                     <p class="card-subtitle">Authenticate to update the central Linkage Board</p>
                 </div>
             </div>
@@ -264,6 +417,23 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
                 current_state = state.copy()
             json_response(self, 200, current_state)
             return
+        if path == "/api/session":
+            account = session_account(self)
+            if account is None:
+                json_response(self, 401, {"success": False, "message": "Login required"})
+                return
+            json_response(self, 200, {"success": True, "permissions": permission_payload(account)})
+            return
+        if path == "/api/accounts":
+            account = session_account(self)
+            if account is None:
+                json_response(self, 401, {"success": False, "message": "Login required"})
+                return
+            if not has_permission(account, "manage_accounts"):
+                json_response(self, 403, {"success": False, "message": "Permission denied"})
+                return
+            json_response(self, 200, {"success": True, "usernames": list(ACCOUNTS.keys())})
+            return
         if path == "/login":
             response = login_page()
             self.send_response(200)
@@ -289,30 +459,61 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
         if path == "/api/login":
             self.handle_login_json()
             return
+        if path == "/api/accounts":
+            self.handle_accounts_update()
+            return
         if path != "/api/update":
             json_response(self, 404, {"success": False, "message": "Not found"})
             return
-        if not valid_session(self):
+        account = session_account(self)
+        if account is None:
             json_response(self, 401, {"success": False, "message": "Login required"})
+            return
+        if not has_permission(account, "basic_update"):
+            json_response(self, 403, {"success": False, "message": "Permission denied"})
             return
         try:
             data = read_json_body(self)
             if not isinstance(data, dict):
                 raise ValueError("Request JSON must be an object")
 
-            area = data.get("area", "")
-            unit_number = data.get("unit_number", "")
-            equipment_codes = data.get("equipment_codes", "")
+            with STATE_LOCK:
+                previous_state = state.copy()
+
+            area = data.get("area", previous_state.get("area", ""))
+            unit_number = data.get("unit_number", previous_state.get("unit_number", ""))
+            equipment_codes = data.get("equipment_codes", previous_state.get("equipment_codes", ""))
             status = data.get("status", "")
-            status_options = normalize_status_options(data.get("status_options", []))
+            status_options = normalize_status_options(data.get("status_options", [])) if has_permission(account, "manage_options") else previous_state.get("status_options", [])
             if isinstance(status, str) and status.strip() and status.strip() not in status_options:
                 status_options.append(status.strip())
-            product_name_options = normalize_status_options(data.get("product_name_options", []))
-            material_name_options = normalize_status_options(data.get("material_name_options", []))
-            previous_product_name_options = normalize_status_options(data.get("previous_product_name_options", []))
-            previous_material_name_options = normalize_status_options(data.get("previous_material_name_options", []))
-            batch_number_options = normalize_status_options(data.get("batch_number_options", []))
-            sap_batch_number_options = normalize_status_options(data.get("sap_batch_number_options", []))
+            product_name_options = normalize_status_options(data.get("product_name_options", [])) if has_permission(account, "manage_options") else previous_state.get("product_name_options", [])
+            material_name_options = normalize_status_options(data.get("material_name_options", [])) if has_permission(account, "manage_options") else previous_state.get("material_name_options", [])
+            previous_product_name_options = normalize_status_options(data.get("previous_product_name_options", [])) if has_permission(account, "manage_options") else previous_state.get("previous_product_name_options", [])
+            previous_material_name_options = normalize_status_options(data.get("previous_material_name_options", [])) if has_permission(account, "manage_options") else previous_state.get("previous_material_name_options", [])
+            batch_number_options = normalize_status_options(data.get("batch_number_options", [])) if has_permission(account, "manage_options") else previous_state.get("batch_number_options", [])
+            sap_batch_number_options = normalize_status_options(data.get("sap_batch_number_options", [])) if has_permission(account, "manage_options") else previous_state.get("sap_batch_number_options", [])
+            selectable_fields = normalize_selectable_fields(
+                data.get("selectable_fields", previous_state.get("selectable_fields"))
+                if has_permission(account, "manage_options")
+                else previous_state.get("selectable_fields")
+            )
+            selectable_field_values = data.get("selectable_field_values", {}) if has_permission(account, "manage_options") else previous_state.get("selectable_field_values", {})
+            selectable_field_options = data.get("selectable_field_options", {}) if has_permission(account, "manage_options") else previous_state.get("selectable_field_options", {})
+            if not isinstance(selectable_field_values, dict):
+                selectable_field_values = {}
+            if not isinstance(selectable_field_options, dict):
+                selectable_field_options = {}
+            selectable_field_values = {
+                str(key): str(value or "").strip()
+                for key, value in selectable_field_values.items()
+                if isinstance(key, str)
+            }
+            selectable_field_options = {
+                str(key): normalize_status_options(value)
+                for key, value in selectable_field_options.items()
+                if isinstance(key, str)
+            }
             previous_product_name = data.get("previous_product_name", "")
             previous_material_name = data.get("previous_material_name", "")
             product_name = data.get("product_name", "")
@@ -321,24 +522,32 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             sap_batch_number = data.get("sap_batch_number", "")
             previous_name_type = normalize_selection(
                 data.get("previous_name_type"),
-                ("previous_product_name", "previous_material_name"),
-                "previous_product_name" if previous_product_name else "previous_material_name",
+                tuple(item["key"] for item in selectable_fields["previous_name"]),
+                selectable_fields["previous_name"][0]["key"],
             )
             current_name_type = normalize_selection(
                 data.get("current_name_type"),
-                ("product_name", "material_name"),
-                "product_name" if product_name else "material_name",
+                tuple(item["key"] for item in selectable_fields["current_name"]),
+                selectable_fields["current_name"][0]["key"],
             )
             batch_type = normalize_selection(
                 data.get("batch_type"),
-                ("batch_number", "sap_batch_number"),
-                "batch_number" if batch_number else "sap_batch_number",
+                tuple(item["key"] for item in selectable_fields["batch"]),
+                selectable_fields["batch"][0]["key"],
             )
             cleaning_valid_up_to = data.get("cleaning_valid_up_to", "")
             clean_before_datetime = data.get("clean_before_datetime", "")
             updated_by = data.get("updated_by", "")
             updated_on = data.get("updated_on", "")
-            custom_rows = normalize_custom_rows(data.get("custom_rows", []))
+            custom_rows = normalize_custom_rows(data.get("custom_rows", [])) if has_permission(account, "manage_rows") else previous_state.get("custom_rows", [])
+            field_labels = data.get("field_labels", {}) if has_permission(account, "edit_field_names") else previous_state.get("field_labels", {})
+            if not isinstance(field_labels, dict):
+                field_labels = previous_state.get("field_labels", {})
+
+            if has_permission(account, "edit_unit_info"):
+                unit_number = data.get("unit_number", previous_state.get("unit_number", ""))
+            else:
+                unit_number = previous_state.get("unit_number", "")
 
             if product_name and product_name.strip() and product_name.strip() not in product_name_options:
                 product_name_options.append(product_name.strip())
@@ -407,6 +616,10 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
                     "updated_by": str(updated_by or "").strip(),
                     "updated_on": str(updated_on or "").strip(),
                     "custom_rows": custom_rows,
+                    "field_labels": {str(key): str(value).strip() for key, value in field_labels.items() if str(value).strip()},
+                    "selectable_fields": selectable_fields,
+                    "selectable_field_values": selectable_field_values,
+                    "selectable_field_options": selectable_field_options,
                     "in_charge": in_charge.strip(),
                     "working": working,
                     "production_kits": production_kits,
@@ -441,6 +654,7 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(response)
                 return
+            self.last_authenticated_username = username if username in ACCOUNTS else USERNAME
             self.redirect_with_session("/edit")
         except (ValueError, UnicodeDecodeError):
             json_response(self, 400, {"success": False, "message": "Invalid login request"})
@@ -448,11 +662,12 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
     def handle_login_json(self):
         try:
             data = read_json_body(self)
-            if not self.authenticate(data.get("username", ""), data.get("password", "")):
+            username = data.get("username", "")
+            if not self.authenticate(username, data.get("password", "")):
                 json_response(self, 401, {"success": False, "message": "Invalid username or password"})
                 return
             session = secrets.token_urlsafe(32)
-            SESSIONS.add(session)
+            SESSIONS[session] = username
             json_response(self, 200, {"success": True}, {
                 "Set-Cookie": "lynkedge_session={}; HttpOnly; SameSite=Strict; Path=/".format(session)
             })
@@ -460,16 +675,48 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             json_response(self, 400, {"success": False, "message": str(error)})
 
     def authenticate(self, username, password):
+        account = ACCOUNTS.get(str(username))
+        if account is not None and password_matches(password, account.get("password")):
+            return True
         if PASSWORD is None:
             return False
-        return (
-            hmac_compare(username, USERNAME) and
-            hmac_compare(password, PASSWORD)
-        )
+        return hmac_compare(username, USERNAME) and hmac_compare(password, PASSWORD)
+
+    def handle_accounts_update(self):
+        account = session_account(self)
+        if account is None:
+            json_response(self, 401, {"success": False, "message": "Login required"})
+            return
+        if not has_permission(account, "manage_accounts"):
+            json_response(self, 403, {"success": False, "message": "Permission denied"})
+            return
+        try:
+            data = read_json_body(self)
+            submitted = data.get("accounts") if isinstance(data, dict) else None
+            if not isinstance(submitted, list) or len(submitted) != 3:
+                raise ValueError("Exactly three accounts are required")
+            usernames = [str(item.get("username", "")).strip() for item in submitted if isinstance(item, dict)]
+            passwords = [str(item.get("password", "")) for item in submitted if isinstance(item, dict)]
+            if len(usernames) != 3 or len(set(usernames)) != 3 or any(not value for value in usernames):
+                raise ValueError("Account usernames must be unique and non-empty")
+            if any(len(value) < 4 for value in passwords):
+                raise ValueError("Passwords must contain at least four characters")
+            levels = (1, 2, 3)
+            updated_accounts = {
+                username: {"level": level, "password": hash_password(password)}
+                for username, password, level in zip(usernames, passwords, levels)
+            }
+            with AUTH_LOCK:
+                ACCOUNTS.clear()
+                ACCOUNTS.update(updated_accounts)
+                save_accounts(ACCOUNTS)
+            json_response(self, 200, {"success": True, "message": "Account settings updated"})
+        except (ValueError, json.JSONDecodeError) as error:
+            json_response(self, 400, {"success": False, "message": str(error)})
 
     def redirect_with_session(self, location):
         session = secrets.token_urlsafe(32)
-        SESSIONS.add(session)
+        SESSIONS[session] = self.last_authenticated_username
         self.send_response(303)
         self.send_header("Location", location)
         self.send_header(

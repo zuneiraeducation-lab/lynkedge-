@@ -1,5 +1,5 @@
 /**
- * LynkEdge operator console logic.
+ * LynkEdge production console logic.
  * Supports fully independent option lists for Product Name vs Material Name,
  * Previous Product vs Previous Material, and Batch No. vs SAP Batch No.
  */
@@ -18,6 +18,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeStatusModalBtn = document.getElementById('closeStatusModalBtn');
   const cancelStatusBtn = document.getElementById('cancelStatusBtn');
   const confirmStatusBtn = document.getElementById('confirmStatusBtn');
+  const editLabelsBtn = document.getElementById('editLabelsBtn');
+  const accountSettingsPanel = document.getElementById('accountSettingsPanel');
+  const accountSettingsFields = document.getElementById('accountSettingsFields');
+  const saveAccountsBtn = document.getElementById('saveAccountsBtn');
+  const accountSettingsFeedback = document.getElementById('accountSettingsFeedback');
+  let fieldNamesEditMode = false;
+
+  const permissions = {
+    basic_update: false,
+    manage_options: false,
+    edit_field_names: false,
+    edit_unit_info: false,
+    manage_rows: false,
+    manage_structure: false,
+    manage_accounts: false
+  };
 
   const fieldMap = {
     area: document.getElementById('area'),
@@ -81,6 +97,16 @@ document.addEventListener('DOMContentLoaded', () => {
     batch_number: '',
     sap_batch_number: ''
   };
+  const selectableFields = {
+    previous_name: [],
+    current_name: [],
+    batch: []
+  };
+  const fieldGroupConfig = {
+    previous_name: { container: 'previousNameFields', radioName: 'previousNameType', picker: 'previous_name' },
+    current_name: { container: 'currentNameFields', radioName: 'currentNameType', picker: 'current_name' },
+    batch: { container: 'batchFields', radioName: 'batchType', picker: 'batch' }
+  };
 
   let activeModalTarget = null;
 
@@ -119,6 +145,81 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pickerKey === 'current_name') return selectedValue('currentNameType') || 'product_name';
     if (pickerKey === 'batch') return selectedValue('batchType') || 'batch_number';
     return pickerKey;
+  }
+
+  function renderSelectableFields(group) {
+    const config = fieldGroupConfig[group];
+    const container = document.getElementById(config.container);
+    if (!container) return;
+    const currentKey = getActiveSubKey(config.picker);
+    container.innerHTML = '';
+    selectableFields[group].forEach((field, index) => {
+      const item = document.createElement('span');
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = config.radioName;
+      radio.value = field.key;
+      radio.checked = field.key === currentKey || (!currentKey && index === 0);
+      const label = document.createElement('span');
+      label.textContent = ` (${field.label})`;
+      item.append(radio, label);
+
+      if (permissions.manage_options && fieldNamesEditMode) {
+        const rename = document.createElement('button');
+        rename.type = 'button';
+        rename.className = 'field-name-action field-name-edit';
+        rename.textContent = '✎';
+        rename.title = 'Edit field name';
+        rename.setAttribute('aria-label', `Edit ${field.label}`);
+        rename.addEventListener('click', () => {
+          const nextLabel = window.prompt('Field name', field.label);
+          if (nextLabel && nextLabel.trim()) {
+            field.label = nextLabel.trim();
+            renderSelectableFields(group);
+          }
+        });
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'field-name-action field-name-remove';
+        remove.textContent = '×';
+        remove.title = 'Remove field name';
+        remove.setAttribute('aria-label', `Remove ${field.label}`);
+        remove.addEventListener('click', () => {
+          if (selectableFields[group].length <= 1) return;
+          selectableFields[group] = selectableFields[group].filter((item) => item.key !== field.key);
+          renderSelectableFields(group);
+          renderPicker(config.picker);
+        });
+        item.append(rename, remove);
+      }
+      container.appendChild(item);
+    });
+    if (permissions.manage_options && fieldNamesEditMode) {
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.className = 'field-name-add';
+      add.textContent = '+';
+      add.title = 'Add field name';
+      add.setAttribute('aria-label', 'Add field name');
+      add.addEventListener('click', () => {
+        const label = window.prompt('New field name');
+        if (!label || !label.trim()) return;
+        const keyBase = `${group}_${label.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_')}`;
+        let key = keyBase;
+        let suffix = 2;
+        while (selectableFields[group].some((item) => item.key === key)) key = `${keyBase}_${suffix++}`;
+        selectableFields[group].push({ key, label: label.trim() });
+        optionsStore[key] = [];
+        valuesStore[key] = '';
+        renderSelectableFields(group);
+        renderPicker(config.picker);
+      });
+      container.appendChild(add);
+    }
+  }
+
+  function renderAllSelectableFields() {
+    Object.keys(fieldGroupConfig).forEach(renderSelectableFields);
   }
 
   function getModalConfig(subKey) {
@@ -216,7 +317,11 @@ document.addEventListener('DOMContentLoaded', () => {
         renderPicker(pickerKey);
       });
 
-      optionRow.append(optionButton, deleteButton);
+      if (permissions.manage_options) {
+        optionRow.append(optionButton, deleteButton);
+      } else {
+        optionRow.append(optionButton);
+      }
       elements.optionsList.appendChild(optionRow);
     });
   }
@@ -226,22 +331,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Radio button switch listeners
-  document.querySelectorAll('input[name="currentNameType"]').forEach((radio) => {
-    radio.addEventListener('change', () => {
-      renderPicker('current_name');
-    });
-  });
-
-  document.querySelectorAll('input[name="previousNameType"]').forEach((radio) => {
-    radio.addEventListener('change', () => {
-      renderPicker('previous_name');
-    });
-  });
-
-  document.querySelectorAll('input[name="batchType"]').forEach((radio) => {
-    radio.addEventListener('change', () => {
-      renderPicker('batch');
-    });
+  document.addEventListener('change', (event) => {
+    if (event.target.matches('input[name="currentNameType"]')) renderPicker('current_name');
+    if (event.target.matches('input[name="previousNameType"]')) renderPicker('previous_name');
+    if (event.target.matches('input[name="batchType"]')) renderPicker('batch');
   });
 
   // Modal open/close handling
@@ -395,7 +488,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const actionCell = document.createElement('div');
     actionCell.className = 'custom-row-actions';
-    actionCell.append(confirmBtn, removeBtn);
+    if (permissions.manage_rows) {
+      actionCell.append(confirmBtn, removeBtn);
+    }
+    labelInput.readOnly = !permissions.manage_rows;
+    typeSelect.disabled = !permissions.manage_rows;
 
     row.append(labelInput, valueCell, actionCell);
     return row;
@@ -430,6 +527,13 @@ document.addEventListener('DOMContentLoaded', () => {
       field.value = String(data[key]);
     });
 
+    document.querySelectorAll('[data-label-key]').forEach((label) => {
+      const key = label.dataset.labelKey;
+      if (data.field_labels && typeof data.field_labels[key] === 'string' && !label.querySelector('input, span')) {
+        label.textContent = data.field_labels[key];
+      }
+    });
+
     // Populate options store
     optionsStore.status = normalizeList(data.status_options);
     optionsStore.product_name = normalizeList(data.product_name_options || (data.product_name ? [data.product_name] : []));
@@ -438,6 +542,13 @@ document.addEventListener('DOMContentLoaded', () => {
     optionsStore.previous_material_name = normalizeList(data.previous_material_name_options || (data.previous_material_name ? [data.previous_material_name] : []));
     optionsStore.batch_number = normalizeList(data.batch_number_options || (data.batch_number ? [data.batch_number] : []));
     optionsStore.sap_batch_number = normalizeList(data.sap_batch_number_options || (data.sap_batch_number ? [data.sap_batch_number] : []));
+    Object.keys(fieldGroupConfig).forEach((group) => {
+      selectableFields[group].splice(0, selectableFields[group].length, ...(Array.isArray(data.selectable_fields?.[group]) ? data.selectable_fields[group] : []));
+      selectableFields[group].forEach((field) => {
+        optionsStore[field.key] = normalizeList(data.selectable_field_options?.[field.key] || []);
+        valuesStore[field.key] = String(data.selectable_field_values?.[field.key] || '');
+      });
+    });
 
     // Populate values store
     valuesStore.status = String(data.status || '').trim();
@@ -457,23 +568,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Determine and set active radio buttons
-    const previousKey = ['previous_product_name', 'previous_material_name'].includes(data.previous_name_type)
+    const previousKeys = selectableFields.previous_name.map((field) => field.key);
+    const currentKeys = selectableFields.current_name.map((field) => field.key);
+    const batchKeys = selectableFields.batch.map((field) => field.key);
+    const previousKey = previousKeys.includes(data.previous_name_type)
       ? data.previous_name_type
-      : (valuesStore.previous_product_name ? 'previous_product_name' : (valuesStore.previous_material_name ? 'previous_material_name' : 'previous_product_name'));
-    const currentKey = ['product_name', 'material_name'].includes(data.current_name_type)
+      : (previousKeys[0] || 'previous_product_name');
+    const currentKey = currentKeys.includes(data.current_name_type)
       ? data.current_name_type
-      : (valuesStore.product_name ? 'product_name' : (valuesStore.material_name ? 'material_name' : 'product_name'));
-    const batchKey = ['batch_number', 'sap_batch_number'].includes(data.batch_type)
+      : (currentKeys[0] || 'product_name');
+    const batchKey = batchKeys.includes(data.batch_type)
       ? data.batch_type
-      : (valuesStore.batch_number ? 'batch_number' : (valuesStore.sap_batch_number ? 'sap_batch_number' : 'batch_number'));
+      : (batchKeys[0] || 'batch_number');
 
+    renderAllSelectableFields();
     const previousRadio = document.querySelector(`input[name="previousNameType"][value="${previousKey}"]`);
     const currentRadio = document.querySelector(`input[name="currentNameType"][value="${currentKey}"]`);
     const batchRadio = document.querySelector(`input[name="batchType"][value="${batchKey}"]`);
     if (previousRadio) previousRadio.checked = true;
     if (currentRadio) currentRadio.checked = true;
     if (batchRadio) batchRadio.checked = true;
-
     // Render all pickers with the populated independent options and values
     renderAllPickers();
 
@@ -507,6 +621,73 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       console.warn('Status load failed:', error.message);
     }
+  }
+
+  async function fetchSession() {
+    const response = await fetch('/api/session', { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    Object.assign(permissions, data.permissions || {});
+    document.querySelectorAll('.add-status-btn').forEach((button) => {
+      button.classList.toggle('hidden', !permissions.manage_options);
+    });
+    if (customRowsContainer) customRowsContainer.classList.toggle('hidden', !permissions.manage_structure);
+    if (addRowBtn) addRowBtn.classList.toggle('hidden', !permissions.manage_structure);
+    if (editLabelsBtn) editLabelsBtn.classList.toggle('hidden', !permissions.edit_field_names);
+    if (fieldMap.unit_number) fieldMap.unit_number.readOnly = !permissions.edit_unit_info;
+    if (permissions.manage_accounts) {
+      accountSettingsPanel.classList.remove('hidden');
+      await loadAccountNames();
+    }
+  }
+
+  if (editLabelsBtn) {
+    editLabelsBtn.addEventListener('click', () => {
+      if (!permissions.edit_field_names) return;
+      fieldNamesEditMode = !fieldNamesEditMode;
+      editLabelsBtn.textContent = fieldNamesEditMode ? 'Done editing field names' : 'Edit field names';
+      editLabelsBtn.setAttribute('aria-pressed', String(fieldNamesEditMode));
+      renderAllSelectableFields();
+    });
+  }
+
+  function setAccountFeedback(message, type) {
+    if (!accountSettingsFeedback) return;
+    accountSettingsFeedback.textContent = message;
+    accountSettingsFeedback.className = `feedback-banner ${type}`;
+  }
+
+  async function loadAccountNames() {
+    const response = await fetch('/api/accounts', { cache: 'no-store' });
+    if (!response.ok) return;
+    const data = await response.json();
+    accountSettingsFields.innerHTML = '';
+    (data.usernames || []).forEach((username, index) => {
+      const group = document.createElement('div');
+      group.className = 'account-setting-row';
+      group.innerHTML = `<label>Account ${index + 1}<input class="account-username" type="text" value="${username.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" required></label><label>New password<input class="account-password" type="password" minlength="4" required></label>`;
+      accountSettingsFields.appendChild(group);
+    });
+  }
+
+  if (saveAccountsBtn) {
+    saveAccountsBtn.addEventListener('click', async () => {
+      const accounts = Array.from(accountSettingsFields.querySelectorAll('.account-setting-row')).map((row) => ({
+        username: row.querySelector('.account-username').value.trim(),
+        password: row.querySelector('.account-password').value
+      }));
+      try {
+        const response = await fetch('/api/accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accounts })
+        });
+        const result = await response.json();
+        setAccountFeedback(result.message || 'Account settings updated.', response.ok ? 'success' : 'error');
+      } catch (error) {
+        setAccountFeedback('Could not update account settings.', 'error');
+      }
+    });
   }
 
   if (addRowBtn && customRowsContainer) {
@@ -553,7 +734,13 @@ document.addEventListener('DOMContentLoaded', () => {
         in_charge: fieldMap.updated_by ? fieldMap.updated_by.value.trim() : '',
         working: 0,
         production_kits: 0,
-        batch_number_used: valuesStore[activeBatchKey] || ''
+        batch_number_used: valuesStore[activeBatchKey] || '',
+        selectable_fields: selectableFields,
+        selectable_field_values: Object.fromEntries(Object.keys(valuesStore).map((key) => [key, valuesStore[key]])),
+        selectable_field_options: Object.fromEntries(Object.keys(optionsStore).map((key) => [key, optionsStore[key]])),
+        field_labels: Object.fromEntries(Array.from(document.querySelectorAll('[data-label-key]'))
+          .filter((label) => !label.querySelector('input, span'))
+          .map((label) => [label.dataset.labelKey, label.textContent.trim()]))
       };
 
       if (!payload.updated_by) {
@@ -603,5 +790,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  fetchStatus();
+  fetchSession().then(fetchStatus).catch(() => {
+    window.location.href = '/login';
+  });
 });

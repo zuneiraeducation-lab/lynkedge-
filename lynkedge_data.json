@@ -1,7 +1,7 @@
 {
   "area": "COMPRESSION-VII",
   "unit_number": "fdhh",
-  "equipment_codes": "",
+  "equipment_codes": "123456",
   "status": "IN OPERATION",
   "status_options": [
     "IN OPERATION",
@@ -33,26 +33,61 @@
     "SAP-8000",
     "SAP-8001"
   ],
-  "previous_product_name": "",
-  "previous_material_name": "Lactose Monohydrate",
-  "previous_name_type": "previous_material_name",
-  "product_name": "Paracetamol 500mg",
-  "material_name": "",
-  "current_name_type": "product_name",
-  "batch_number": "B1024",
-  "sap_batch_number": "",
-  "batch_type": "batch_number",
-  "cleaning_valid_up_to": "2026-09-10",
-  "clean_before_datetime": "2026-09-14T19:19",
-  "updated_by": "Admin Operator",
+  "previous_product_name": "Aspirin 100mg",
+  "previous_material_name": "",
+  "previous_name_type": "previous_product_name",
+  "product_name": "",
+  "material_name": "Corn Starch",
+  "current_name_type": "material_name",
+  "batch_number": "",
+  "sap_batch_number": "SAP-8001",
+  "batch_type": "sap_batch_number",
+  "cleaning_valid_up_to": "2026-09-09",
+  "clean_before_datetime": "2026-09-22T19:19",
+  "updated_by": "Zuneira",
   "updated_on": "2026-09-05",
   "custom_rows": [],
-  "in_charge": "Admin Operator",
+  "field_labels": {},
+  "selectable_fields": {
+    "previous_name": [
+      {
+        "key": "previous_product_name",
+        "label": "Previous Product Name"
+      },
+      {
+        "key": "previous_material_name",
+        "label": "Previous Material Name"
+      }
+    ],
+    "current_name": [
+      {
+        "key": "product_name",
+        "label": "Product Name"
+      },
+      {
+        "key": "material_name",
+        "label": "Material Name"
+      }
+    ],
+    "batch": [
+      {
+        "key": "batch_number",
+        "label": "Batch No."
+      },
+      {
+        "key": "sap_batch_number",
+        "label": "SAP Batch No."
+      }
+    ]
+  },
+  "selectable_field_values": {},
+  "selectable_field_options": {},
+  "in_charge": "Zuneira",
   "working": 0,
   "production_kits": 0,
   "board_status": "RUNNING",
   "tablet_connected": true,
-  "last_updated": "10:15:46",
+  "last_updated": "11:35:58",
   "previous_name_options": [
     "Aspirin 100mg",
     "Cough Syrup 100ml"

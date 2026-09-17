@@ -1,6 +1,6 @@
 /* ==========================================================
    LYNKEDGE CONTROL PAGE
-   Light blue operator form
+  Light blue production form
    ========================================================== */
 
 :root {
@@ -567,6 +567,7 @@ body.control-page::after {
   justify-content: center;
   gap: 4px;
   width: 100%;
+  min-width: 0;
 }
 
 .radio-options > span {
@@ -574,6 +575,7 @@ body.control-page::after {
   align-items: center;
   gap: 10px;
   min-height: 18px;
+  white-space: nowrap;
 }
 
 .radio-label input[type="radio"] {
@@ -747,6 +749,92 @@ body.control-page::after {
 
 .feedback-banner.hidden {
   display: none;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.account-settings {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid #d7e4ef;
+  background: #f7fbfe;
+}
+
+.manage-field-names-btn,
+.field-name-action,
+.field-name-add {
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.field-name-action {
+  width: 24px;
+  height: 24px;
+  margin-left: 4px;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.field-name-add {
+  display: block;
+  width: 30px;
+  height: 28px;
+  margin-top: 4px;
+  padding: 0;
+  background: #dff6e9;
+  color: #14824e;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.field-name-edit {
+  background: #dff6e9;
+  color: #14824e;
+}
+
+.field-name-remove {
+  background: #ffe8eb;
+  color: #ed475d;
+}
+
+.account-settings h2 {
+  margin: 0 0 14px;
+  font-size: 1rem;
+}
+
+.account-setting-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.account-setting-row label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #46627a;
+}
+
+.account-setting-row input {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid #b8ccdc;
+  border-radius: 4px;
+  font: inherit;
+}
+
+@media (max-width: 640px) {
+  .account-setting-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .feedback-banner.success {

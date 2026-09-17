@@ -36,17 +36,17 @@
     <section class="board-panel">
       <form id="productionForm" class="data-form" autocomplete="off">
         <div class="entry-row">
-          <label class="entry-label">Area :</label>
+          <label class="entry-label" data-label-key="area">Area :</label>
           <input id="area" name="area" class="field-box field-input" type="text" value="COMPRESSION-VII">
         </div>
 
         <div class="entry-row">
-          <label class="entry-label">Fixed Equipment &amp; Accessories Code:</label>
+          <label class="entry-label" data-label-key="equipment_codes">Fixed Equipment &amp; Accessories Code:</label>
           <input id="equipmentCodes" name="equipment_codes" class="field-box field-input" type="text" value="TM-061.TM-021, GA-T-AC-0410, GA-T-AC-0462, GA-T-AC-0210, GA-T-AC-0446, GA-T-AC-0428, GA-T-AC-0057, GA-T-AC-0059, GA-T-AC-0416">
         </div>
 
         <div class="entry-row">
-          <label class="entry-label">Status :</label>
+          <label class="entry-label" data-label-key="status">Status :</label>
           <div class="status-controls">
             <select id="status" name="status" class="status-native-select">
               <option value="" selected disabled>Select Status</option>
@@ -63,11 +63,8 @@
         </div>
 
         <div class="entry-row option-row">
-          <label class="entry-label radio-label">
-            <span class="radio-options">
-              <span><input type="radio" name="previousNameType" value="previous_product_name" checked> (Previous Product Name)</span>
-              <span><input type="radio" name="previousNameType" value="previous_material_name"> (Previous Material Name)</span>
-            </span>
+          <label class="entry-label radio-label" data-label-key="previous_name">
+            <span id="previousNameFields" class="radio-options"></span>
           </label>
           <div class="status-controls">
             <select id="previousNameValue" name="previous_name_value" class="status-native-select">
@@ -85,11 +82,8 @@
         </div>
 
         <div class="entry-row option-row">
-          <label class="entry-label radio-label">
-            <span class="radio-options">
-              <span><input type="radio" name="currentNameType" value="product_name" checked> (Product Name)</span>
-              <span><input type="radio" name="currentNameType" value="material_name"> (Material Name)</span>
-            </span>
+          <label class="entry-label radio-label" data-label-key="current_name">
+            <span id="currentNameFields" class="radio-options"></span>
           </label>
           <div class="status-controls">
             <select id="currentNameValue" name="current_name_value" class="status-native-select">
@@ -107,11 +101,8 @@
         </div>
 
         <div class="entry-row option-row">
-          <label class="entry-label radio-label">
-            <span class="radio-options">
-              <span><input type="radio" name="batchType" value="batch_number" checked> (Batch No.)</span>
-              <span><input type="radio" name="batchType" value="sap_batch_number"> (SAP Batch No.)</span>
-            </span>
+          <label class="entry-label radio-label" data-label-key="batch">
+            <span id="batchFields" class="radio-options"></span>
           </label>
           <div class="status-controls">
             <select id="batchValue" name="batch_value" class="status-native-select">
@@ -129,22 +120,22 @@
         </div>
 
         <div class="entry-row">
-          <label class="entry-label">Cleaning Valid up to :</label>
+          <label class="entry-label" data-label-key="cleaning_valid_up_to">Cleaning Valid up to :</label>
           <input id="cleaningValidUpTo" name="cleaning_valid_up_to" class="field-box field-input" type="date">
         </div>
 
         <div class="entry-row">
-          <label class="entry-label">Equipment/Accessories/Area clean before date and time :</label>
+          <label class="entry-label" data-label-key="clean_before_datetime">Equipment/Accessories/Area clean before date and time :</label>
           <input id="cleanBeforeDatetime" name="clean_before_datetime" class="field-box field-input" type="datetime-local">
         </div>
 
         <div class="entry-row">
-          <label class="entry-label">Status updated by :</label>
+          <label class="entry-label" data-label-key="updated_by">Status updated by :</label>
           <input id="updatedBy" name="updated_by" class="field-box field-input" type="text" placeholder="ENTER NAME">
         </div>
 
         <div class="entry-row">
-          <label class="entry-label">Status updated on :</label>
+          <label class="entry-label" data-label-key="updated_on">Status updated on :</label>
           <input id="updatedOn" name="updated_on" class="field-box field-input" type="date">
         </div>
 
@@ -152,6 +143,7 @@
 
         <div class="entry-row action-row">
           <button type="button" id="addRowBtn" class="add-row-btn">+ Add Row</button>
+          <button type="button" id="editLabelsBtn" class="add-row-btn hidden">Edit field names</button>
           <button type="submit" id="submitBtn" class="submit-btn">
             <span class="btn-text">Submit</span>
           </button>
@@ -162,6 +154,13 @@
         <span class="feedback-icon" id="feedbackIcon"></span>
         <span class="feedback-text" id="feedbackText"></span>
       </div>
+
+      <section id="accountSettingsPanel" class="account-settings hidden" aria-labelledby="accountSettingsTitle">
+        <h2 id="accountSettingsTitle">Account settings</h2>
+        <div id="accountSettingsFields"></div>
+        <button type="button" id="saveAccountsBtn" class="submit-btn">Save account settings</button>
+        <div id="accountSettingsFeedback" class="feedback-banner hidden" role="alert"></div>
+      </section>
     </section>
   </main>
 

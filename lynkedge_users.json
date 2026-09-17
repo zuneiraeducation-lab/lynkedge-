@@ -1,0 +1,23 @@
+{
+  "entry": {
+    "level": 1,
+    "password": {
+      "salt": "84ef910a42b0933a8b857c4b684d8b3c",
+      "hash": "473dc15b9f929951cfc1badfb3bedd1f8479d621aa8bfa179b1f38f3555e00c2"
+    }
+  },
+  "control": {
+    "level": 2,
+    "password": {
+      "salt": "b52e561a2575dbec5e7acbfba57a75da",
+      "hash": "ce37625a27480491c5e42f392910940c902e6b790e29700296ef0a4e0481c889"
+    }
+  },
+  "admin": {
+    "level": 3,
+    "password": {
+      "salt": "2efa030c7f1872f06b4ceb4f88c502a0",
+      "hash": "fdd6642ba6f83436d7c867038b2508bd0d399d6b898e3ea2896fe6b2db38dd5b"
+    }
+  }
+}

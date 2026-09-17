@@ -53,33 +53,23 @@
       }
 
       const selectedField = (selection, choices, fallback) => {
-        const selectedKey = choices.some(([key]) => key === selection)
-          ? selection
-          : fallback;
-        const [key, label] = choices.find(([field]) => field === selectedKey);
-        return [label, data[key] || ''];
+        const selectedKey = choices.some((field) => field.key === selection) ? selection : fallback;
+        const field = choices.find((item) => item.key === selectedKey) || choices[0];
+        return field ? [field.label, data.selectable_field_values?.[field.key] || data[field.key] || ''] : ['', ''];
       };
+      const labelFor = (key, fallback) => (data.field_labels && data.field_labels[key]) || fallback;
 
       const rows = [
-        ['Area', data.area || ''],
-        ['Fixed Equipment & Accessories Code', data.equipment_codes || ''],
-        ['Status', data.status || ''],
-        selectedField(data.previous_name_type, [
-          ['previous_product_name', 'Previous Product Name'],
-          ['previous_material_name', 'Previous Material Name']
-        ], data.previous_product_name ? 'previous_product_name' : 'previous_material_name'),
-        selectedField(data.current_name_type, [
-          ['product_name', 'Product Name'],
-          ['material_name', 'Material Name']
-        ], data.product_name ? 'product_name' : 'material_name'),
-        selectedField(data.batch_type, [
-          ['batch_number', 'Batch No.'],
-          ['sap_batch_number', 'SAP Batch No.']
-        ], data.batch_number ? 'batch_number' : 'sap_batch_number'),
-        ['Cleaning Valid Up To', data.cleaning_valid_up_to || ''],
-        ['Equipment/Accessories/Area clean before date and time', data.clean_before_datetime || ''],
-        ['Status updated by', data.updated_by || ''],
-        ['Status updated on', data.updated_on || '']
+        [labelFor('area', 'Area'), data.area || ''],
+        [labelFor('equipment_codes', 'Fixed Equipment & Accessories Code'), data.equipment_codes || ''],
+        [labelFor('status', 'Status'), data.status || ''],
+        selectedField(data.previous_name_type, data.selectable_fields?.previous_name || [], 'previous_product_name'),
+        selectedField(data.current_name_type, data.selectable_fields?.current_name || [], 'product_name'),
+        selectedField(data.batch_type, data.selectable_fields?.batch || [], 'batch_number'),
+        [labelFor('cleaning_valid_up_to', 'Cleaning Valid Up To'), data.cleaning_valid_up_to || ''],
+        [labelFor('clean_before_datetime', 'Equipment/Accessories/Area clean before date and time'), data.clean_before_datetime || ''],
+        [labelFor('updated_by', 'Status updated by'), data.updated_by || ''],
+        [labelFor('updated_on', 'Status updated on'), data.updated_on || '']
       ];
 
       const customRows = Array.isArray(data.custom_rows) ? data.custom_rows : [];
