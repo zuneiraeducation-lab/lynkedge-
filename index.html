@@ -36,6 +36,13 @@
   <script>
     const statusUrl = '/api/status';
 
+    function formatDisplayValue(value) {
+      return String(value || '').replace(
+        /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}(?::\d{2})?)/,
+        '$1     $2'
+      );
+    }
+
     function renderDisplay(data) {
       const displayBoard = document.getElementById('displayBoard');
       if (!displayBoard) return;
@@ -45,16 +52,30 @@
         unitEl.textContent = data.unit_number;
       }
 
+      const selectedField = (selection, choices, fallback) => {
+        const selectedKey = choices.some(([key]) => key === selection)
+          ? selection
+          : fallback;
+        const [key, label] = choices.find(([field]) => field === selectedKey);
+        return [label, data[key] || ''];
+      };
+
       const rows = [
         ['Area', data.area || ''],
         ['Fixed Equipment & Accessories Code', data.equipment_codes || ''],
         ['Status', data.status || ''],
-        ['Previous Product Name', data.previous_product_name || ''],
-        ['Previous Material Name', data.previous_material_name || ''],
-        ['Product Name', data.product_name || ''],
-        ['Material Name', data.material_name || ''],
-        ['Batch No.', data.batch_number || ''],
-        ['SAP Batch No.', data.sap_batch_number || ''],
+        selectedField(data.previous_name_type, [
+          ['previous_product_name', 'Previous Product Name'],
+          ['previous_material_name', 'Previous Material Name']
+        ], data.previous_product_name ? 'previous_product_name' : 'previous_material_name'),
+        selectedField(data.current_name_type, [
+          ['product_name', 'Product Name'],
+          ['material_name', 'Material Name']
+        ], data.product_name ? 'product_name' : 'material_name'),
+        selectedField(data.batch_type, [
+          ['batch_number', 'Batch No.'],
+          ['sap_batch_number', 'SAP Batch No.']
+        ], data.batch_number ? 'batch_number' : 'sap_batch_number'),
         ['Cleaning Valid Up To', data.cleaning_valid_up_to || ''],
         ['Equipment/Accessories/Area clean before date and time', data.clean_before_datetime || ''],
         ['Status updated by', data.updated_by || ''],
@@ -69,7 +90,7 @@
       const content = rows.map(([label, value]) => `
         <div class="display-row">
           <div class="display-label">${label} :</div>
-          <div class="display-value">${value || 'NA'}</div>
+          <div class="display-value">${formatDisplayValue(value) || 'NA'}</div>
         </div>
       `).join('');
 

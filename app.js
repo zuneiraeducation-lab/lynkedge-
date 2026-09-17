@@ -457,9 +457,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Determine and set active radio buttons
-    const previousKey = valuesStore.previous_product_name ? 'previous_product_name' : (valuesStore.previous_material_name ? 'previous_material_name' : 'previous_product_name');
-    const currentKey = valuesStore.product_name ? 'product_name' : (valuesStore.material_name ? 'material_name' : 'product_name');
-    const batchKey = valuesStore.batch_number ? 'batch_number' : (valuesStore.sap_batch_number ? 'sap_batch_number' : 'batch_number');
+    const previousKey = ['previous_product_name', 'previous_material_name'].includes(data.previous_name_type)
+      ? data.previous_name_type
+      : (valuesStore.previous_product_name ? 'previous_product_name' : (valuesStore.previous_material_name ? 'previous_material_name' : 'previous_product_name'));
+    const currentKey = ['product_name', 'material_name'].includes(data.current_name_type)
+      ? data.current_name_type
+      : (valuesStore.product_name ? 'product_name' : (valuesStore.material_name ? 'material_name' : 'product_name'));
+    const batchKey = ['batch_number', 'sap_batch_number'].includes(data.batch_type)
+      ? data.batch_type
+      : (valuesStore.batch_number ? 'batch_number' : (valuesStore.sap_batch_number ? 'sap_batch_number' : 'batch_number'));
 
     const previousRadio = document.querySelector(`input[name="previousNameType"][value="${previousKey}"]`);
     const currentRadio = document.querySelector(`input[name="currentNameType"][value="${currentKey}"]`);
@@ -532,10 +538,13 @@ document.addEventListener('DOMContentLoaded', () => {
         sap_batch_number_options: optionsStore.sap_batch_number,
         previous_product_name: activePreviousKey === 'previous_product_name' ? (valuesStore.previous_product_name || '') : '',
         previous_material_name: activePreviousKey === 'previous_material_name' ? (valuesStore.previous_material_name || '') : '',
+        previous_name_type: activePreviousKey,
         product_name: activeCurrentKey === 'product_name' ? (valuesStore.product_name || '') : '',
         material_name: activeCurrentKey === 'material_name' ? (valuesStore.material_name || '') : '',
+        current_name_type: activeCurrentKey,
         batch_number: activeBatchKey === 'batch_number' ? (valuesStore.batch_number || '') : '',
         sap_batch_number: activeBatchKey === 'sap_batch_number' ? (valuesStore.sap_batch_number || '') : '',
+        batch_type: activeBatchKey,
         cleaning_valid_up_to: fieldMap.cleaning_valid_up_to ? fieldMap.cleaning_valid_up_to.value : '',
         clean_before_datetime: fieldMap.clean_before_datetime ? fieldMap.clean_before_datetime.value : '',
         updated_by: fieldMap.updated_by ? fieldMap.updated_by.value.trim() : '',

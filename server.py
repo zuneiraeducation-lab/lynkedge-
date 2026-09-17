@@ -34,10 +34,13 @@ DEFAULT_STATE = {
     "sap_batch_number_options": [],
     "previous_product_name": "",
     "previous_material_name": "",
+    "previous_name_type": "previous_product_name",
     "product_name": "",
     "material_name": "",
+    "current_name_type": "product_name",
     "batch_number": "B1024",
     "sap_batch_number": "",
+    "batch_type": "batch_number",
     "cleaning_valid_up_to": "",
     "clean_before_datetime": "",
     "updated_by": "",
@@ -82,6 +85,10 @@ def normalize_status_options(value):
     ))
 
 
+def normalize_selection(value, allowed, fallback):
+    return value if value in allowed else fallback
+
+
 def load_state():
     try:
         with open(DATA_FILE, "r", encoding="utf-8") as data_file:
@@ -96,6 +103,21 @@ def load_state():
         state["previous_material_name_options"] = normalize_status_options(state.get("previous_material_name_options", []))
         state["batch_number_options"] = normalize_status_options(state.get("batch_number_options", []))
         state["sap_batch_number_options"] = normalize_status_options(state.get("sap_batch_number_options", []))
+        state["previous_name_type"] = normalize_selection(
+            state.get("previous_name_type"),
+            ("previous_product_name", "previous_material_name"),
+            "previous_product_name" if state.get("previous_product_name") else "previous_material_name",
+        )
+        state["current_name_type"] = normalize_selection(
+            state.get("current_name_type"),
+            ("product_name", "material_name"),
+            "product_name" if state.get("product_name") else "material_name",
+        )
+        state["batch_type"] = normalize_selection(
+            state.get("batch_type"),
+            ("batch_number", "sap_batch_number"),
+            "batch_number" if state.get("batch_number") else "sap_batch_number",
+        )
         return state
     except (OSError, ValueError, TypeError):
         return DEFAULT_STATE.copy()
@@ -297,6 +319,21 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             material_name = data.get("material_name", "")
             batch_number = data.get("batch_number", "")
             sap_batch_number = data.get("sap_batch_number", "")
+            previous_name_type = normalize_selection(
+                data.get("previous_name_type"),
+                ("previous_product_name", "previous_material_name"),
+                "previous_product_name" if previous_product_name else "previous_material_name",
+            )
+            current_name_type = normalize_selection(
+                data.get("current_name_type"),
+                ("product_name", "material_name"),
+                "product_name" if product_name else "material_name",
+            )
+            batch_type = normalize_selection(
+                data.get("batch_type"),
+                ("batch_number", "sap_batch_number"),
+                "batch_number" if batch_number else "sap_batch_number",
+            )
             cleaning_valid_up_to = data.get("cleaning_valid_up_to", "")
             clean_before_datetime = data.get("clean_before_datetime", "")
             updated_by = data.get("updated_by", "")
@@ -325,9 +362,6 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             production_kits = data.get("production_kits")
             if production_kits is None:
                 production_kits = 0
-            if not isinstance(batch_number, str) or not batch_number.strip():
-                batch_number = str(sap_batch_number or "").strip()
-
             if not isinstance(in_charge, str):
                 in_charge = str(in_charge)
             if not isinstance(working, int) or isinstance(working, bool):
@@ -361,10 +395,13 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
                     "sap_batch_number_options": sap_batch_number_options,
                     "previous_product_name": str(previous_product_name or "").strip(),
                     "previous_material_name": str(previous_material_name or "").strip(),
+                    "previous_name_type": previous_name_type,
                     "product_name": str(product_name or "").strip(),
                     "material_name": str(material_name or "").strip(),
+                    "current_name_type": current_name_type,
                     "batch_number": str(batch_number or "").strip(),
                     "sap_batch_number": str(sap_batch_number or "").strip(),
+                    "batch_type": batch_type,
                     "cleaning_valid_up_to": str(cleaning_valid_up_to or "").strip(),
                     "clean_before_datetime": str(clean_before_datetime or "").strip(),
                     "updated_by": str(updated_by or "").strip(),
