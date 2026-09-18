@@ -791,10 +791,144 @@ body.control-page::after {
 
 .account-settings {
   margin-top: 18px;
-  padding: 18px;
+  padding: 12px;
   border: 1px solid #d7e4ef;
   background: #f7fbfe;
 }
+
+.change-passwords-btn {
+  width: 100%;
+  border: 1px solid #256ee0;
+  border-radius: 6px;
+  background: #fff;
+  color: #145bb9;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 10px 14px;
+  text-align: left;
+}
+
+.change-passwords-btn:hover {
+  background: #eef6fc;
+}
+
+.change-passwords-btn + .change-passwords-btn {
+  margin-top: 8px;
+}
+
+.password-modal-card {
+  width: min(100%, 560px);
+}
+
+.password-account-choices {
+  display: flex;
+  gap: 14px;
+  margin: -8px 0 20px;
+  color: #294b68;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.password-account-choices label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.password-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.username-fields {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.username-field-label {
+  display: grid;
+  gap: 6px;
+  color: #294b68;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.current-username-input,
+.new-username-input {
+  width: 100%;
+  min-height: 44px;
+  border: 2px solid #cbdce9;
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: #132d4d;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.current-username-input {
+  background: #f3f8fb;
+}
+
+@media (max-width: 560px) {
+  .password-account-choices {
+    flex-wrap: wrap;
+  }
+}
+
+.password-fields > label {
+  display: grid;
+  gap: 6px;
+  color: #294b68;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.password-input-wrap {
+  position: relative;
+}
+
+.password-input-wrap input {
+  width: 100%;
+  min-height: 44px;
+  border: 2px solid #cbdce9;
+  border-radius: 8px;
+  padding: 9px 42px 9px 12px;
+  color: #132d4d;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.password-visibility-btn {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: #557189;
+  cursor: pointer;
+}
+
+.password-visibility-btn svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.password-feedback {
+  margin-top: 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.password-feedback.error { color: #c43d53; }
+.password-feedback.success { color: #14824e; }
 
 .manage-field-names-btn,
 .field-name-control {

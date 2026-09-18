@@ -20,9 +20,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const confirmStatusBtn = document.getElementById('confirmStatusBtn');
   const editLabelsBtn = document.getElementById('editLabelsBtn');
   const accountSettingsPanel = document.getElementById('accountSettingsPanel');
-  const accountSettingsFields = document.getElementById('accountSettingsFields');
-  const saveAccountsBtn = document.getElementById('saveAccountsBtn');
-  const accountSettingsFeedback = document.getElementById('accountSettingsFeedback');
+  const changePasswordsBtn = document.getElementById('changePasswordsBtn');
+  const passwordModal = document.getElementById('passwordModal');
+  const closePasswordModalBtn = document.getElementById('closePasswordModalBtn');
+  const cancelPasswordBtn = document.getElementById('cancelPasswordBtn');
+  const submitPasswordBtn = document.getElementById('submitPasswordBtn');
+  const passwordFeedback = document.getElementById('passwordFeedback');
+  const changeUsernamesBtn = document.getElementById('changeUsernamesBtn');
+  const usernameModal = document.getElementById('usernameModal');
+  const closeUsernameModalBtn = document.getElementById('closeUsernameModalBtn');
+  const cancelUsernameBtn = document.getElementById('cancelUsernameBtn');
+  const submitUsernameBtn = document.getElementById('submitUsernameBtn');
+  const usernameFields = document.getElementById('usernameFields');
+  const usernameFeedback = document.getElementById('usernameFeedback');
+  let usernameMap = {};
   let fieldNamesEditMode = false;
 
   const permissions = {
@@ -654,9 +665,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       customRowsContainer.appendChild(customRow);
     });
-    if (!customRows.length) {
-      customRowsContainer.appendChild(createCustomRow());
-    }
   }
 
   async function fetchStatus() {
@@ -684,7 +692,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (fieldMap.unit_number) fieldMap.unit_number.readOnly = !permissions.edit_unit_info;
     if (permissions.manage_accounts) {
       accountSettingsPanel.classList.remove('hidden');
-      await loadAccountNames();
     }
   }
 
@@ -700,48 +707,177 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function setAccountFeedback(message, type) {
-    if (!accountSettingsFeedback) return;
-    accountSettingsFeedback.textContent = message;
-    accountSettingsFeedback.className = `feedback-banner ${type}`;
+  function setPasswordFeedback(message, type) {
+    if (!passwordFeedback) return;
+    passwordFeedback.textContent = message;
+    passwordFeedback.className = `password-feedback ${type}`;
   }
 
-  async function loadAccountNames() {
+  function setUsernameFeedback(message, type) {
+    if (!usernameFeedback) return;
+    usernameFeedback.textContent = message;
+    usernameFeedback.className = `password-feedback ${type}`;
+  }
+
+  function closeUsernameModal() {
+    if (usernameModal) usernameModal.classList.add('hidden');
+    if (usernameFields) usernameFields.innerHTML = '';
+    if (usernameFeedback) usernameFeedback.className = 'password-feedback hidden';
+  }
+
+  function renderUsernameFields() {
+    const selected = document.querySelector('input[name="usernameAccount"]:checked')?.value || '1';
+    const current = usernameMap[selected] || '';
+    usernameFields.innerHTML = `<label class="username-field-label">Current username<input class="current-username-input" type="text" value="${current.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" readonly></label><label class="username-field-label">New username<input id="newUsernameInput" class="new-username-input" type="text" placeholder="Type new username" autocomplete="off"></label>`;
+    usernameFields.querySelector('#newUsernameInput')?.focus();
+  }
+
+  async function openUsernameModal() {
+    if (!permissions.manage_accounts) return;
     const response = await fetch('/api/accounts', { cache: 'no-store' });
-    if (!response.ok) return;
-    const data = await response.json();
-    accountSettingsFields.innerHTML = '';
-    (data.usernames || []).forEach((username, index) => {
-      const group = document.createElement('div');
-      group.className = 'account-setting-row';
-      group.innerHTML = `<label>Account ${index + 1}<input class="account-username" type="text" value="${username.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" required></label><label>New password<input class="account-password" type="password" minlength="4" required></label>`;
-      accountSettingsFields.appendChild(group);
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      setUsernameFeedback(result.message || 'Unable to load usernames.', 'error');
+      return;
+    }
+    usernameMap = result.usernames || {};
+    renderUsernameFields();
+    usernameModal.classList.remove('hidden');
+  }
+
+  if (changeUsernamesBtn) changeUsernamesBtn.addEventListener('click', openUsernameModal);
+  if (closeUsernameModalBtn) closeUsernameModalBtn.addEventListener('click', closeUsernameModal);
+  if (cancelUsernameBtn) cancelUsernameBtn.addEventListener('click', closeUsernameModal);
+  document.querySelectorAll('input[name="usernameAccount"]').forEach((radio) => {
+    radio.addEventListener('change', renderUsernameFields);
+  });
+
+  if (submitUsernameBtn) {
+    submitUsernameBtn.addEventListener('click', async () => {
+      const selectedAccount = document.querySelector('input[name="usernameAccount"]:checked');
+      const newUsername = document.getElementById('newUsernameInput')?.value.trim() || '';
+      const currentUsername = selectedAccount ? usernameMap[selectedAccount.value] : '';
+      if (!newUsername) {
+        setUsernameFeedback('New username is required.', 'error');
+        return;
+      }
+      const otherUsernames = Object.entries(usernameMap)
+        .filter(([level]) => level !== selectedAccount.value)
+        .map(([, username]) => username);
+      if (otherUsernames.includes(newUsername)) {
+        setUsernameFeedback('Username is already in use.', 'error');
+        return;
+      }
+      submitUsernameBtn.disabled = true;
+      try {
+        const response = await fetch('/api/change-usernames', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ account_level: Number(selectedAccount.value), new_username: newUsername })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          setUsernameFeedback(result.message || 'Unable to update usernames.', 'error');
+          return;
+        }
+        usernameMap[selectedAccount.value] = newUsername;
+        setUsernameFeedback('Username changed successfully.', 'success');
+        setTimeout(closeUsernameModal, 900);
+      } catch (error) {
+        setUsernameFeedback('Could not update usernames.', 'error');
+      } finally {
+        submitUsernameBtn.disabled = false;
+      }
     });
   }
 
-  if (saveAccountsBtn) {
-    saveAccountsBtn.addEventListener('click', async () => {
-      const accounts = Array.from(accountSettingsFields.querySelectorAll('.account-setting-row')).map((row) => ({
-        username: row.querySelector('.account-username').value.trim(),
-        password: row.querySelector('.account-password').value
-      }));
+  function clearPasswordForm() {
+    ['newPasswordInput', 'confirmPasswordInput'].forEach((id) => {
+      const input = document.getElementById(id);
+      if (input) {
+        input.value = '';
+        input.type = 'password';
+      }
+    });
+    document.querySelectorAll('.password-visibility-btn').forEach((button) => {
+      button.setAttribute('aria-label', `Show password`);
+    });
+    if (passwordFeedback) passwordFeedback.className = 'password-feedback hidden';
+  }
+
+  function closePasswordModal() {
+    if (passwordModal) passwordModal.classList.add('hidden');
+    clearPasswordForm();
+  }
+
+  if (changePasswordsBtn) {
+    changePasswordsBtn.addEventListener('click', () => {
+      if (!permissions.manage_accounts) return;
+      clearPasswordForm();
+      passwordModal.classList.remove('hidden');
+      document.getElementById('newPasswordInput')?.focus();
+    });
+  }
+
+  if (closePasswordModalBtn) closePasswordModalBtn.addEventListener('click', closePasswordModal);
+  if (cancelPasswordBtn) cancelPasswordBtn.addEventListener('click', closePasswordModal);
+
+  document.querySelectorAll('.password-visibility-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      const input = document.getElementById(button.dataset.passwordTarget);
+      if (!input) return;
+      const showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      button.setAttribute('aria-label', `${showing ? 'Show' : 'Hide'} password`);
+    });
+  });
+
+  if (submitPasswordBtn) {
+    submitPasswordBtn.addEventListener('click', async () => {
+      const newPassword = document.getElementById('newPasswordInput').value;
+      const confirmPassword = document.getElementById('confirmPasswordInput').value;
+      if (!newPassword || !confirmPassword) {
+        setPasswordFeedback('All password fields are required.', 'error');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setPasswordFeedback('New passwords do not match.', 'error');
+        return;
+      }
+      submitPasswordBtn.disabled = true;
       try {
-        const response = await fetch('/api/accounts', {
+        const selectedAccount = document.querySelector('input[name="passwordAccount"]:checked');
+        const response = await fetch('/api/change-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accounts })
+          body: JSON.stringify({
+            account_level: selectedAccount ? Number(selectedAccount.value) : 0,
+            new_password: newPassword,
+            confirm_password: confirmPassword
+          })
         });
         const result = await response.json();
-        setAccountFeedback(result.message || 'Account settings updated.', response.ok ? 'success' : 'error');
+        if (!response.ok || !result.success) {
+          setPasswordFeedback(result.message || 'Unable to change password.', 'error');
+          return;
+        }
+        setPasswordFeedback('Password changed successfully.', 'success');
+        setTimeout(closePasswordModal, 900);
       } catch (error) {
-        setAccountFeedback('Could not update account settings.', 'error');
+        setPasswordFeedback('Could not change password.', 'error');
+      } finally {
+        submitPasswordBtn.disabled = false;
       }
     });
   }
 
   if (addRowBtn && customRowsContainer) {
     addRowBtn.addEventListener('click', () => {
-      customRowsContainer.appendChild(createCustomRow());
+      customRowsContainer.querySelectorAll('.new-row-editor:not(.confirmed)').forEach((row) => row.remove());
+      const newRow = createCustomRow();
+      newRow.classList.add('new-row-editor');
+      customRowsContainer.appendChild(newRow);
+      newRow.querySelector('.custom-label')?.focus();
     });
   }
 

@@ -156,10 +156,8 @@
       </div>
 
       <section id="accountSettingsPanel" class="account-settings hidden" aria-labelledby="accountSettingsTitle">
-        <h2 id="accountSettingsTitle">Account settings</h2>
-        <div id="accountSettingsFields"></div>
-        <button type="button" id="saveAccountsBtn" class="submit-btn">Save account settings</button>
-        <div id="accountSettingsFeedback" class="feedback-banner hidden" role="alert"></div>
+        <button type="button" id="changePasswordsBtn" class="change-passwords-btn">🔐 Change account passwords</button>
+        <button type="button" id="changeUsernamesBtn" class="change-passwords-btn">👤 Change account usernames</button>
       </section>
     </section>
   </main>
@@ -172,6 +170,45 @@
       <div class="status-modal-actions">
         <button type="button" id="cancelStatusBtn" class="cancel-status-btn">Cancel</button>
         <button type="button" id="confirmStatusBtn" class="confirm-status-btn">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="passwordModal" class="status-modal hidden" role="dialog" aria-modal="true" aria-labelledby="passwordModalTitle">
+    <div class="status-modal-card password-modal-card">
+      <button type="button" id="closePasswordModalBtn" class="close-status-modal" aria-label="Close">×</button>
+      <h2 id="passwordModalTitle">Change account passwords</h2>
+      <div class="password-account-choices" role="radiogroup" aria-label="Select account">
+        <label><input type="radio" name="passwordAccount" value="1" checked> Account 1</label>
+        <label><input type="radio" name="passwordAccount" value="2"> Account 2</label>
+        <label><input type="radio" name="passwordAccount" value="3"> Account 3</label>
+      </div>
+      <div class="password-fields">
+        <label>New password<div class="password-input-wrap"><input id="newPasswordInput" type="password" autocomplete="new-password"><button type="button" class="password-visibility-btn" data-password-target="newPasswordInput" aria-label="Show new password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg></button></div></label>
+        <label>Confirm new password<div class="password-input-wrap"><input id="confirmPasswordInput" type="password" autocomplete="new-password"><button type="button" class="password-visibility-btn" data-password-target="confirmPasswordInput" aria-label="Show confirmed password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg></button></div></label>
+      </div>
+      <div id="passwordFeedback" class="password-feedback hidden" role="alert"></div>
+      <div class="status-modal-actions">
+        <button type="button" id="cancelPasswordBtn" class="cancel-status-btn">Cancel</button>
+        <button type="button" id="submitPasswordBtn" class="confirm-status-btn">Change password</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="usernameModal" class="status-modal hidden" role="dialog" aria-modal="true" aria-labelledby="usernameModalTitle">
+    <div class="status-modal-card username-modal-card">
+      <button type="button" id="closeUsernameModalBtn" class="close-status-modal" aria-label="Close">×</button>
+      <h2 id="usernameModalTitle">Change account usernames</h2>
+      <div id="usernameAccountChoices" class="password-account-choices" role="radiogroup" aria-label="Select account">
+        <label><input type="radio" name="usernameAccount" value="1" checked> Account 1</label>
+        <label><input type="radio" name="usernameAccount" value="2"> Account 2</label>
+        <label><input type="radio" name="usernameAccount" value="3"> Account 3</label>
+      </div>
+      <div id="usernameFields" class="username-fields"></div>
+      <div id="usernameFeedback" class="password-feedback hidden" role="alert"></div>
+      <div class="status-modal-actions">
+        <button type="button" id="cancelUsernameBtn" class="cancel-status-btn">Cancel</button>
+        <button type="button" id="submitUsernameBtn" class="confirm-status-btn">Change username</button>
       </div>
     </div>
   </div>

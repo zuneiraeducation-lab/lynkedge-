@@ -432,7 +432,12 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             if not has_permission(account, "manage_accounts"):
                 json_response(self, 403, {"success": False, "message": "Permission denied"})
                 return
-            json_response(self, 200, {"success": True, "usernames": list(ACCOUNTS.keys())})
+            usernames = {
+                str(item.get("level")): username
+                for username, item in ACCOUNTS.items()
+                if item.get("level") in (1, 2, 3)
+            }
+            json_response(self, 200, {"success": True, "usernames": usernames})
             return
         if path == "/login":
             response = login_page()
@@ -459,8 +464,11 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
         if path == "/api/login":
             self.handle_login_json()
             return
-        if path == "/api/accounts":
-            self.handle_accounts_update()
+        if path == "/api/change-password":
+            self.handle_password_change()
+            return
+        if path == "/api/change-usernames":
+            self.handle_username_change()
             return
         if path != "/api/update":
             json_response(self, 404, {"success": False, "message": "Not found"})
@@ -682,7 +690,7 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             return False
         return hmac_compare(username, USERNAME) and hmac_compare(password, PASSWORD)
 
-    def handle_accounts_update(self):
+    def handle_password_change(self):
         account = session_account(self)
         if account is None:
             json_response(self, 401, {"success": False, "message": "Login required"})
@@ -692,26 +700,66 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             return
         try:
             data = read_json_body(self)
-            submitted = data.get("accounts") if isinstance(data, dict) else None
-            if not isinstance(submitted, list) or len(submitted) != 3:
-                raise ValueError("Exactly three accounts are required")
-            usernames = [str(item.get("username", "")).strip() for item in submitted if isinstance(item, dict)]
-            passwords = [str(item.get("password", "")) for item in submitted if isinstance(item, dict)]
-            if len(usernames) != 3 or len(set(usernames)) != 3 or any(not value for value in usernames):
-                raise ValueError("Account usernames must be unique and non-empty")
-            if any(len(value) < 4 for value in passwords):
-                raise ValueError("Passwords must contain at least four characters")
-            levels = (1, 2, 3)
-            updated_accounts = {
-                username: {"level": level, "password": hash_password(password)}
-                for username, password, level in zip(usernames, passwords, levels)
-            }
+            target_level = int(data.get("account_level", 0))
+            new_password = data.get("new_password", "")
+            confirm_password = data.get("confirm_password", "")
+            if target_level not in (1, 2, 3):
+                raise ValueError("Select a valid account")
+            if not new_password:
+                raise ValueError("New password is required")
+            if new_password != confirm_password:
+                raise ValueError("New passwords do not match")
+            if len(new_password) < 4:
+                raise ValueError("New password must contain at least four characters")
+            target_username = next(
+                (username for username, item in ACCOUNTS.items() if item.get("level") == target_level),
+                None,
+            )
+            if target_username is None:
+                raise ValueError("Select a valid account")
             with AUTH_LOCK:
-                ACCOUNTS.clear()
-                ACCOUNTS.update(updated_accounts)
+                ACCOUNTS[target_username]["password"] = hash_password(new_password)
                 save_accounts(ACCOUNTS)
-            json_response(self, 200, {"success": True, "message": "Account settings updated"})
-        except (ValueError, json.JSONDecodeError) as error:
+            json_response(self, 200, {"success": True, "message": "Password changed successfully"})
+        except (ValueError, TypeError, json.JSONDecodeError) as error:
+            json_response(self, 400, {"success": False, "message": str(error)})
+
+    def handle_username_change(self):
+        session_cookie = cookies.SimpleCookie(self.headers.get("Cookie", ""))
+        session_token = session_cookie.get("lynkedge_session")
+        account = session_account(self)
+        if account is None:
+            json_response(self, 401, {"success": False, "message": "Login required"})
+            return
+        if account.get("level") != 3:
+            json_response(self, 403, {"success": False, "message": "Permission denied"})
+            return
+        try:
+            data = read_json_body(self)
+            target_level = str(int(data.get("account_level", 0)))
+            new_username = str(data.get("new_username", "")).strip()
+            if target_level not in ("1", "2", "3"):
+                raise ValueError("Select a valid account")
+            if not new_username:
+                raise ValueError("New username is required")
+
+            with AUTH_LOCK:
+                target_username = next(
+                    (username for username, item in ACCOUNTS.items() if str(item.get("level")) == target_level),
+                    None,
+                )
+                if target_username is None:
+                    raise ValueError("Select a valid account")
+                if new_username != target_username and new_username in ACCOUNTS:
+                    raise ValueError("Username is already in use")
+                target_account = ACCOUNTS.pop(target_username)
+                ACCOUNTS[new_username] = target_account
+                save_accounts(ACCOUNTS)
+                for token, username in list(SESSIONS.items()):
+                    if username == target_username:
+                        SESSIONS[token] = new_username
+            json_response(self, 200, {"success": True, "message": "Usernames updated successfully"})
+        except (ValueError, TypeError, json.JSONDecodeError) as error:
             json_response(self, 400, {"success": False, "message": str(error)})
 
     def redirect_with_session(self, location):
