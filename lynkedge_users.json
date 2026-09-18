@@ -16,8 +16,8 @@
   "entry": {
     "level": 1,
     "password": {
-      "salt": "68f954f417870a1d55ea7aeaaf9ce028",
-      "hash": "db90ae804c273434962ed2bd372aedcd478a0c2ac516c38c6c544602ca5efee6"
+      "salt": "62a5d39316a04919c46284f2c6167401",
+      "hash": "0c099748a23f0be1ebfcdfedec466bf44380709437a4642175810887eb68a2b5"
     }
   }
 }

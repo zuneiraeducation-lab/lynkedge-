@@ -40,6 +40,8 @@ DEFAULT_ACCOUNTS = {
     "admin": {"level": 3, "password": "admin123"},
 }
 
+RECOVERY_CODE = "lynkedge@123"
+
 DEFAULT_STATE = {
     "area": "COMPRESSION-VII",
     "unit_number": "UNIT VII PDII",
@@ -106,6 +108,13 @@ def password_matches(password, stored):
         return False
     candidate = hash_password(password, stored["salt"])["hash"]
     return hmac_compare(candidate, stored["hash"])
+
+
+RECOVERY_CODE_HASHES = {
+    "1": hash_password(RECOVERY_CODE),
+    "2": hash_password(RECOVERY_CODE),
+    "3": hash_password(RECOVERY_CODE),
+}
 
 
 def load_accounts():
@@ -330,12 +339,11 @@ def permission_payload(account):
 
 
 def login_page(message=""):
+        escaped_message = html.escape(message or "")
         message_html = "" if not message else (
-                "<div class=\"feedback-banner error\" role=\"alert\">{}</div>".format(
-                        html.escape(message)
-                )
+                f'<div class="feedback-banner error" role="alert">{escaped_message}</div>'
         )
-        return """<!DOCTYPE html>
+        template = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -345,6 +353,166 @@ def login_page(message=""):
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
+    <style>
+        .forgot-password-link {
+            display: inline-block;
+            margin-top: 12px;
+            color: #0a63d8;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .forgot-password-link:hover {
+            text-decoration: underline;
+        }
+        .forgot-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 15;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: rgba(11, 65, 92, 0.2);
+            backdrop-filter: blur(3px);
+        }
+        .forgot-modal.hidden {
+            display: none;
+        }
+        .forgot-modal-card {
+            position: relative;
+            width: min(100%, 560px);
+            padding: 30px 34px 28px;
+            border: 1px solid rgba(136, 204, 230, 0.35);
+            border-radius: 18px;
+            background: #fff;
+            box-shadow: 0 20px 55px rgba(23, 112, 151, 0.2);
+        }
+        .forgot-modal-card h2 {
+            margin-bottom: 18px;
+            color: #092b5c;
+            font-size: clamp(1.45rem, 3vw, 2rem);
+        }
+        .forgot-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            border: 0;
+            background: transparent;
+            color: #71879d;
+            font-size: 2.1rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .forgot-account-choices {
+            display: flex;
+            gap: 14px;
+            margin: 0 0 18px;
+            color: #294b68;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .forgot-account-choices label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .forgot-field {
+            display: grid;
+            gap: 6px;
+            margin-bottom: 12px;
+            color: #294b68;
+            font-size: 0.86rem;
+            font-weight: 700;
+        }
+        .forgot-field input {
+            width: 100%;
+            min-height: 44px;
+            border: 2px solid #cbdce9;
+            border-radius: 8px;
+            padding: 9px 12px;
+            color: #132d4d;
+            font: inherit;
+            box-sizing: border-box;
+        }
+        .forgot-field input:focus {
+            border-color: #1475e8;
+            box-shadow: 0 0 0 3px rgba(20, 117, 232, 0.12);
+        }
+        .forgot-password-wrap {
+            position: relative;
+        }
+        .forgot-password-wrap input {
+            padding-right: 42px;
+        }
+        .forgot-toggle-btn {
+            position: absolute;
+            top: 50%;
+            right: 8px;
+            width: 30px;
+            height: 30px;
+            transform: translateY(-50%);
+            border: 0;
+            background: transparent;
+            color: #557189;
+            cursor: pointer;
+        }
+        .forgot-toggle-btn svg {
+            width: 19px;
+            height: 19px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+        }
+        .forgot-feedback {
+            min-height: 18px;
+            margin-top: 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+        .forgot-feedback.error { color: #c43d53; }
+        .forgot-feedback.success { color: #14824e; }
+        .forgot-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 14px;
+            margin-top: 18px;
+        }
+        .forgot-btn-cancel,
+        .forgot-btn-primary {
+            min-width: 150px;
+            min-height: 54px;
+            border-radius: 10px;
+            font: inherit;
+            font-size: 1.15rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .forgot-btn-cancel {
+            border: 2px solid #cbdce9;
+            background: #fff;
+            color: #092b5c;
+        }
+        .forgot-btn-primary {
+            border: 0;
+            background: #0876ed;
+            color: #fff;
+            box-shadow: 0 3px 0 rgba(4, 74, 165, 0.22);
+        }
+        .forgot-btn-primary:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        @media (max-width: 560px) {
+            .forgot-account-choices {
+                flex-wrap: wrap;
+            }
+            .forgot-modal-card {
+                padding: 24px 20px 20px;
+            }
+        }
+    </style>
 </head>
 <body>
     <main class="app-container">
@@ -387,17 +555,234 @@ def login_page(message=""):
                         </div>
                     </div>
                 </div>
-                {}
+                __MESSAGE_HTML__
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">
                         <span>Sign In to LYNKEDGE</span>
                     </button>
                 </div>
             </form>
+            <a href="#" id="forgotPasswordLink" class="forgot-password-link">Forgot password?</a>
         </section>
     </main>
+
+    <div id="forgotPasswordModal" class="forgot-modal hidden" role="dialog" aria-modal="true" aria-labelledby="forgotPasswordTitle">
+        <div class="forgot-modal-card">
+            <button type="button" id="closeForgotModalBtn" class="forgot-close-btn" aria-label="Close">×</button>
+            <h2 id="forgotPasswordTitle">Forgot Password</h2>
+
+            <div id="forgotStage1">
+                <div class="password-account-choices" role="radiogroup" aria-label="Select account">
+                    <label><input type="radio" name="forgotAccount" value="1" checked> Account 1</label>
+                    <label><input type="radio" name="forgotAccount" value="2"> Account 2</label>
+                    <label><input type="radio" name="forgotAccount" value="3"> Account 3</label>
+                </div>
+                <div class="forgot-field">
+                    <label for="recoveryCodeInput">Recovery Code</label>
+                    <input id="recoveryCodeInput" type="password" autocomplete="off" placeholder="Enter recovery code">
+                </div>
+                <div id="forgotStage1Feedback" class="password-feedback" role="alert"></div>
+                <div class="status-modal-actions">
+                    <button type="button" id="cancelForgotBtn" class="cancel-status-btn">Cancel</button>
+                    <button type="button" id="verifyForgotBtn" class="confirm-status-btn">Verify</button>
+                </div>
+            </div>
+
+            <div id="forgotStage2" class="hidden">
+                <div class="password-fields">
+                    <label for="newForgotPassword">New Password
+                        <div class="password-input-wrap">
+                            <input id="newForgotPassword" type="password" autocomplete="new-password">
+                            <button type="button" class="password-visibility-btn" data-password-target="newForgotPassword" aria-label="Show password">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg>
+                            </button>
+                        </div>
+                    </label>
+                    <label for="confirmForgotPassword">Confirm New Password
+                        <div class="password-input-wrap">
+                            <input id="confirmForgotPassword" type="password" autocomplete="new-password">
+                            <button type="button" class="password-visibility-btn" data-password-target="confirmForgotPassword" aria-label="Show confirmed password">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg>
+                            </button>
+                        </div>
+                    </label>
+                </div>
+                <div id="forgotStage2Feedback" class="password-feedback" role="alert"></div>
+                <div class="status-modal-actions">
+                    <button type="button" id="cancelForgotResetBtn" class="cancel-status-btn">Cancel</button>
+                    <button type="button" id="saveForgotBtn" class="confirm-status-btn" disabled>Save Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+        const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+        const closeForgotModalBtn = document.getElementById('closeForgotModalBtn');
+        const cancelForgotBtn = document.getElementById('cancelForgotBtn');
+        const cancelForgotResetBtn = document.getElementById('cancelForgotResetBtn');
+        const verifyForgotBtn = document.getElementById('verifyForgotBtn');
+        const saveForgotBtn = document.getElementById('saveForgotBtn');
+        const forgotStage1 = document.getElementById('forgotStage1');
+        const forgotStage2 = document.getElementById('forgotStage2');
+        const forgotStage1Feedback = document.getElementById('forgotStage1Feedback');
+        const forgotStage2Feedback = document.getElementById('forgotStage2Feedback');
+
+        function setForgotFeedback(element, type, message) {
+            element.className = `password-feedback ${type}`;
+            element.textContent = message || '';
+        }
+
+        function resetForgotFlow() {
+            forgotStage1.classList.remove('hidden');
+            forgotStage2.classList.add('hidden');
+            document.getElementById('recoveryCodeInput').value = '';
+            document.getElementById('newForgotPassword').value = '';
+            document.getElementById('confirmForgotPassword').value = '';
+            setForgotFeedback(forgotStage1Feedback, 'error', '');
+            setForgotFeedback(forgotStage2Feedback, 'error', '');
+            saveForgotBtn.disabled = true;
+        }
+
+        function openForgotModal() {
+            resetForgotFlow();
+            forgotPasswordModal.classList.remove('hidden');
+            document.getElementById('recoveryCodeInput').focus();
+        }
+
+        function closeForgotModal() {
+            forgotPasswordModal.classList.add('hidden');
+            resetForgotFlow();
+        }
+
+        function applyForgotPasswordToggle(button) {
+            const targetId = button.dataset.passwordTarget;
+            const targetInput = document.getElementById(targetId);
+            if (!targetInput) return;
+            const isPassword = targetInput.type === 'password';
+            targetInput.type = isPassword ? 'text' : 'password';
+            button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        }
+
+        document.querySelectorAll('.password-visibility-btn').forEach((button) => {
+            button.addEventListener('click', () => applyForgotPasswordToggle(button));
+        });
+
+        forgotPasswordLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            openForgotModal();
+        });
+
+        closeForgotModalBtn.addEventListener('click', closeForgotModal);
+        cancelForgotBtn.addEventListener('click', closeForgotModal);
+        cancelForgotResetBtn.addEventListener('click', closeForgotModal);
+
+        verifyForgotBtn.addEventListener('click', async () => {
+            const selectedRadio = document.querySelector('input[name="forgotAccount"]:checked');
+            const recoveryCode = document.getElementById('recoveryCodeInput').value.trim();
+            if (!selectedRadio) {
+                setForgotFeedback(forgotStage1Feedback, 'error', 'Please select an account.');
+                return;
+            }
+            if (!recoveryCode) {
+                setForgotFeedback(forgotStage1Feedback, 'error', 'Recovery code is required.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/forgot-password/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        account_level: Number(selectedRadio.value),
+                        recovery_code: recoveryCode
+                    })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || 'Unable to verify recovery code.');
+                }
+                forgotStage1.classList.add('hidden');
+                forgotStage2.classList.remove('hidden');
+                setForgotFeedback(forgotStage1Feedback, 'error', '');
+                setForgotFeedback(forgotStage2Feedback, 'error', '');
+                document.getElementById('newForgotPassword').focus();
+            } catch (error) {
+                setForgotFeedback(forgotStage1Feedback, 'error', error.message || 'Unable to verify recovery code.');
+            }
+        });
+
+        function validateForgotReset() {
+            const newPassword = document.getElementById('newForgotPassword').value;
+            const confirmPassword = document.getElementById('confirmForgotPassword').value;
+
+            if (!newPassword) {
+                setForgotFeedback(forgotStage2Feedback, 'error', 'New password is required.');
+                return false;
+            }
+            if (!confirmPassword) {
+                setForgotFeedback(forgotStage2Feedback, 'error', 'Confirm new password is required.');
+                return false;
+            }
+            if (newPassword !== confirmPassword) {
+                setForgotFeedback(forgotStage2Feedback, 'error', 'Passwords do not match.');
+                return false;
+            }
+            if (newPassword.length < 4) {
+                setForgotFeedback(forgotStage2Feedback, 'error', 'New password must contain at least four characters.');
+                return false;
+            }
+            setForgotFeedback(forgotStage2Feedback, 'error', '');
+            return true;
+        }
+
+        [
+            document.getElementById('newForgotPassword'),
+            document.getElementById('confirmForgotPassword')
+        ].forEach((input) => {
+            input.addEventListener('input', () => {
+                saveForgotBtn.disabled = !validateForgotReset();
+            });
+        });
+
+        saveForgotBtn.addEventListener('click', async () => {
+            const selectedRadio = document.querySelector('input[name="forgotAccount"]:checked');
+            if (!selectedRadio) {
+                setForgotFeedback(forgotStage2Feedback, 'error', 'Please select an account.');
+                return;
+            }
+            if (!validateForgotReset()) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/forgot-password/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        account_level: Number(selectedRadio.value),
+                        recovery_code: document.getElementById('recoveryCodeInput').value.trim(),
+                        new_password: document.getElementById('newForgotPassword').value,
+                        confirm_new_password: document.getElementById('confirmForgotPassword').value
+                    })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || 'Unable to update password.');
+                }
+                setForgotFeedback(forgotStage2Feedback, 'success', result.message || 'Password updated successfully. Please log in with your new password.');
+                setTimeout(() => {
+                    window.location.href = '/login?message=' + encodeURIComponent('Password updated successfully. Please log in with your new password.');
+                }, 700);
+            } catch (error) {
+                setForgotFeedback(forgotStage2Feedback, 'error', error.message || 'Unable to update password.');
+            }
+        });
+    </script>
 </body>
-</html>""".format(message_html).encode("utf-8")
+</html>"""
+        return template.replace("__MESSAGE_HTML__", message_html).encode("utf-8")
 
 
 class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
@@ -411,7 +796,9 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
     def do_GET(self):
-        path = urlparse(self.path).path
+        parsed = urlparse(self.path)
+        path = parsed.path
+        query = parse_qs(parsed.query)
         if path == "/api/status":
             with STATE_LOCK:
                 current_state = state.copy()
@@ -440,7 +827,8 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             json_response(self, 200, {"success": True, "usernames": usernames})
             return
         if path == "/login":
-            response = login_page()
+            login_message = query.get("message", [""])[0]
+            response = login_page(login_message)
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(response)))
@@ -463,6 +851,12 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             return
         if path == "/api/login":
             self.handle_login_json()
+            return
+        if path == "/api/forgot-password/verify":
+            self.handle_forgot_password_verify()
+            return
+        if path == "/api/forgot-password/reset":
+            self.handle_forgot_password_reset()
             return
         if path == "/api/change-password":
             self.handle_password_change()
@@ -689,6 +1083,80 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
         if PASSWORD is None:
             return False
         return hmac_compare(username, USERNAME) and hmac_compare(password, PASSWORD)
+
+    def handle_forgot_password_verify(self):
+        try:
+            data = read_json_body(self)
+            target_level = int(data.get("account_level", 0))
+            recovery_code = str(data.get("recovery_code", "")).strip()
+            if target_level not in (1, 2, 3):
+                raise ValueError("Select a valid account")
+            if not recovery_code:
+                raise ValueError("Recovery code is required")
+            target_username = next(
+                (username for username, item in ACCOUNTS.items() if item.get("level") == target_level),
+                None,
+            )
+            if target_username is None:
+                raise ValueError("Select a valid account")
+            hashed_code = RECOVERY_CODE_HASHES.get(str(target_level))
+            if hashed_code is None or not password_matches(recovery_code, hashed_code):
+                raise ValueError("Invalid recovery code")
+            json_response(self, 200, {"success": True, "message": "Recovery code verified"})
+        except (ValueError, TypeError, json.JSONDecodeError) as error:
+            json_response(self, 400, {"success": False, "message": str(error)})
+
+    def handle_forgot_password_reset(self):
+        try:
+            data = read_json_body(self)
+            target_level = int(data.get("account_level", 0))
+            recovery_code = str(data.get("recovery_code", "")).strip()
+            new_password = str(data.get("new_password", ""))
+            confirm_new_password = str(data.get("confirm_new_password", ""))
+
+            if target_level not in (1, 2, 3):
+                raise ValueError("Select a valid account")
+            if not recovery_code:
+                raise ValueError("Recovery code is required")
+            if not new_password:
+                raise ValueError("New password is required")
+            if not confirm_new_password:
+                raise ValueError("Confirm new password is required")
+            if new_password != confirm_new_password:
+                raise ValueError("Passwords do not match")
+            if len(new_password) < 4:
+                raise ValueError("New password must contain at least four characters")
+
+            target_username = next(
+                (username for username, item in ACCOUNTS.items() if item.get("level") == target_level),
+                None,
+            )
+            if target_username is None:
+                raise ValueError("Select a valid account")
+
+            hashed_code = RECOVERY_CODE_HASHES.get(str(target_level))
+            if hashed_code is None or not password_matches(recovery_code, hashed_code):
+                raise ValueError("Invalid recovery code")
+
+            with AUTH_LOCK:
+                target_username = next(
+                    (username for username, item in ACCOUNTS.items() if item.get("level") == target_level),
+                    None,
+                )
+                if target_username is None:
+                    raise ValueError("Select a valid account")
+                ACCOUNTS[target_username]["password"] = hash_password(new_password)
+                save_accounts(ACCOUNTS)
+                for token, username in list(SESSIONS.items()):
+                    if username == target_username:
+                        del SESSIONS[token]
+
+            json_response(self, 200, {
+                "success": True,
+                "message": "Password updated successfully. Please log in with your new password."
+            })
+        except (ValueError, TypeError, json.JSONDecodeError) as error:
+            json_response(self, 400, {"success": False, "message": str(error)})
 
     def handle_password_change(self):
         account = session_account(self)
