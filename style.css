@@ -1436,3 +1436,229 @@ body:not(.control-page):not(.display-mode) .feedback-banner.error {
     padding: 24px;
   }
 }
+
+/* Optional glossy theme. The unscoped rules above remain the default theme. */
+.theme-toggle {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 20;
+  border: 1px solid rgba(66, 169, 255, 0.55);
+  border-radius: 999px;
+  background: rgba(5, 31, 55, 0.88);
+  padding: 8px 13px;
+  color: #d9f6ff;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 5px 16px rgba(0, 24, 39, 0.2);
+}
+
+html[data-theme="glossy"] body.control-page,
+html[data-theme="glossy"] body.display-mode,
+html[data-theme="glossy"] body:not(.control-page):not(.display-mode) {
+  background:
+    radial-gradient(ellipse at 18% 78%, rgba(26, 159, 235, 0.52) 0%, rgba(26, 159, 235, 0.2) 24%, transparent 48%),
+    radial-gradient(ellipse at 76% 22%, rgba(86, 224, 222, 0.48) 0%, rgba(86, 224, 222, 0.18) 25%, transparent 52%),
+    linear-gradient(120deg, #f8ffff 0%, #e9faff 34%, #c9f1f5 68%, #a8e2ec 100%);
+  color: #123b56;
+}
+
+html[data-theme="glossy"] body.control-page::before,
+html[data-theme="glossy"] body.control-page::after {
+  background: rgba(71, 196, 222, 0.18);
+  box-shadow: inset 0 0 35px rgba(255, 255, 255, 0.35);
+}
+
+html[data-theme="glossy"] .theme-toggle {
+  border-color: rgba(15, 151, 181, 0.5);
+  background: rgba(255, 255, 255, 0.72);
+  color: #075271;
+  box-shadow: 0 8px 20px rgba(35, 128, 153, 0.18), inset 0 1px 0 #fff;
+  backdrop-filter: blur(12px);
+}
+
+html[data-theme="glossy"] .theme-toggle:hover {
+  background: #ffffff;
+  border-color: #0d9fb9;
+}
+
+html[data-theme="glossy"] .display-edit-btn,
+html[data-theme="glossy"] .back-nav-btn {
+  border-color: rgba(16, 151, 181, 0.42);
+  background: rgba(255, 255, 255, 0.58);
+  color: #075271;
+  box-shadow: 0 6px 16px rgba(36, 133, 158, 0.14), inset 0 1px 0 #fff;
+  backdrop-filter: blur(12px);
+}
+
+html[data-theme="glossy"] .display-edit-btn:hover,
+html[data-theme="glossy"] .back-nav-btn:hover {
+  background: rgba(11, 153, 178, 0.92);
+  border-color: #0b9bb6;
+  color: #fff;
+}
+
+html[data-theme="glossy"] .display-brand-block,
+html[data-theme="glossy"] .login-cipla-brand,
+html[data-theme="glossy"] .brand-block {
+  color: #0b66a8;
+}
+
+html[data-theme="glossy"] .display-main-title,
+html[data-theme="glossy"] .control-heading,
+html[data-theme="glossy"] .control-heading p,
+html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .brand-title,
+html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .card-title {
+  color: #124d78;
+}
+
+html[data-theme="glossy"] .display-board {
+  position: relative;
+  isolation: isolate;
+  border-color: rgba(18, 166, 194, 0.58);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(187, 239, 249, 0.42) 52%, rgba(255, 255, 255, 0.68));
+  box-shadow: 0 20px 42px rgba(42, 139, 163, 0.28), inset 0 2px 0 rgba(255, 255, 255, 0.95), inset 0 -8px 20px rgba(78, 174, 198, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+html[data-theme="glossy"] .display-board::before {
+  position: absolute;
+  z-index: 2;
+  inset: -18% -12% 48% -10%;
+  content: "";
+  pointer-events: none;
+  border-radius: 50%;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.3) 34%, rgba(255, 255, 255, 0.06) 62%, transparent 78%);
+  filter: blur(7px);
+  opacity: 0.9;
+  transform: rotate(-5deg);
+}
+
+html[data-theme="glossy"] .display-row {
+  border-bottom-color: rgba(46, 174, 198, 0.34);
+}
+
+html[data-theme="glossy"] .display-label,
+html[data-theme="glossy"] .display-value {
+  color: #123f5d;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+html[data-theme="glossy"] .display-label {
+  border-right-color: rgba(46, 174, 198, 0.34);
+  background: linear-gradient(180deg, rgba(240, 253, 255, 0.82) 0%, rgba(196, 241, 249, 0.7) 48%, rgba(157, 222, 237, 0.62) 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.72), inset 0 -7px 13px rgba(54, 161, 187, 0.1);
+}
+
+html[data-theme="glossy"] .display-value {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(239, 251, 254, 0.76) 48%, rgba(207, 239, 248, 0.68) 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.86), inset 0 -7px 13px rgba(64, 154, 183, 0.08);
+}
+
+html[data-theme="glossy"] .display-document-number {
+  color: #075f82;
+  text-shadow: 0 1px 0 #fff;
+}
+
+html[data-theme="glossy"] .board-panel,
+html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .card {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(91, 190, 214, 0.4);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(209, 246, 251, 0.48) 48%, rgba(255, 255, 255, 0.7));
+  box-shadow: 0 22px 52px rgba(50, 139, 176, 0.24), inset 0 2px 0 rgba(255, 255, 255, 0.95), inset 0 -12px 24px rgba(52, 164, 190, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+html[data-theme="glossy"] .board-panel::before,
+html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .card::before {
+  position: absolute;
+  z-index: 0;
+  top: -28%;
+  left: -12%;
+  width: 124%;
+  height: 58%;
+  content: "";
+  pointer-events: none;
+  border-radius: 50%;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.24) 42%, transparent 72%);
+  filter: blur(10px);
+  transform: rotate(-4deg);
+}
+
+html[data-theme="glossy"] .board-panel > *,
+html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .card > * {
+  position: relative;
+  z-index: 1;
+}
+
+html[data-theme="glossy"] .entry-label {
+  color: #164968;
+  background: rgba(184, 235, 246, 0.66);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+html[data-theme="glossy"] .field-box,
+html[data-theme="glossy"] .field-input,
+html[data-theme="glossy"] .field-select,
+html[data-theme="glossy"] .field-label-editor,
+html[data-theme="glossy"] .custom-row .custom-label,
+html[data-theme="glossy"] .custom-row .custom-value,
+html[data-theme="glossy"] .status-picker-btn,
+html[data-theme="glossy"] .status-native-select {
+  border-color: rgba(79, 166, 194, 0.5);
+  background: rgba(255, 255, 255, 0.66);
+  color: #123b56;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+html[data-theme="glossy"] .field-input:focus,
+html[data-theme="glossy"] .field-select:focus,
+html[data-theme="glossy"] .selectable-field-label-input:focus {
+  border-color: #0d9fb9;
+  box-shadow: 0 0 0 3px rgba(13, 159, 185, 0.13), inset 0 1px 0 #fff;
+}
+
+html[data-theme="glossy"] .submit-btn,
+html[data-theme="glossy"] .confirm-status-btn,
+html[data-theme="glossy"] .confirm-remove-btn,
+html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .btn-primary {
+  border-color: #0a9caf;
+  background: linear-gradient(180deg, #26c4ce, #0795aa);
+  color: #fff;
+  box-shadow: 0 5px 12px rgba(11, 139, 158, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+html[data-theme="glossy"] .add-row-btn,
+html[data-theme="glossy"] .field-name-control,
+html[data-theme="glossy"] .add-status-btn,
+html[data-theme="glossy"] .cancel-status-btn {
+  border-color: rgba(13, 151, 177, 0.42);
+  background: rgba(255, 255, 255, 0.68);
+  color: #08617d;
+  box-shadow: inset 0 1px 0 #fff;
+}
+
+html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .input-wrapper {
+  border-color: rgba(79, 166, 194, 0.5);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(218, 246, 251, 0.54));
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.95), inset 0 -5px 10px rgba(53, 159, 184, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .form-input {
+  color: #123b56;
+}
+
+html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .form-label,
+html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .card-subtitle,
+html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .brand-subtitle {
+  color: #21617e;
+}

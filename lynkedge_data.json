@@ -85,7 +85,7 @@
   },
   "selectable_field_values": {
     "status": "IN PROCESS",
-    "previous_product_name": "Aspirin 100mg",
+    "previous_product_name": "",
     "previous_material_name": "ZEDEX P",
     "product_name": "",
     "material_name": "ASPIRIN",
@@ -123,7 +123,7 @@
   "production_kits": 0,
   "board_status": "RUNNING",
   "tablet_connected": true,
-  "last_updated": "12:05:56",
+  "last_updated": "13:57:16",
   "previous_name_options": [
     "Aspirin 100mg",
     "Cough Syrup 100ml"
