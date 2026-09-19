@@ -843,29 +843,14 @@ body.control-page::after {
 
 .account-settings {
   margin-top: 18px;
-  padding: 12px;
-  border: 1px solid #d7e4ef;
-  background: #f7fbfe;
 }
 
-.change-passwords-btn {
+.account-action-btn {
   width: 100%;
-  border: 1px solid #256ee0;
-  border-radius: 6px;
-  background: #fff;
-  color: #145bb9;
-  cursor: pointer;
-  font: inherit;
-  font-weight: 700;
-  padding: 10px 14px;
-  text-align: left;
+  text-align: center;
 }
 
-.change-passwords-btn:hover {
-  background: #eef6fc;
-}
-
-.change-passwords-btn + .change-passwords-btn {
+.account-action-btn + .account-action-btn {
   margin-top: 8px;
 }
 
