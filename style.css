@@ -1320,6 +1320,7 @@ body:not(.control-page):not(.display-mode) .brand-title {
   font-size: clamp(2rem, 4vw, 2.8rem);
   letter-spacing: 0.06em;
   line-height: 1.1;
+  text-transform: none;
 }
 
 body:not(.control-page):not(.display-mode) .brand-title,
@@ -1661,4 +1662,12 @@ html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .form-label
 html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .card-subtitle,
 html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .brand-subtitle {
   color: #21617e;
+}
+
+html[data-theme="glossy"] body:not(.control-page):not(.display-mode) .feedback-banner.error {
+  border-color: rgba(190, 45, 62, 0.58);
+  background: rgba(255, 235, 238, 0.86);
+  color: #9d2034;
+  text-shadow: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 5px 14px rgba(164, 42, 60, 0.1);
 }

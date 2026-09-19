@@ -521,8 +521,8 @@ def login_page(message=""):
         <header class="app-header">
             <div class="brand-group">
                 <div class="brand-text">
-                    <h1 class="brand-title">LYNKEDGE</h1>
-                    <p class="brand-subtitle">Production Linkage System</p>
+                    <h1 class="brand-title">LYNKedge</h1>
+                    <p class="brand-subtitle">Production LYNKedge System</p>
                 </div>
             </div>
         </header>
@@ -530,7 +530,7 @@ def login_page(message=""):
             <div class="card-header">
                 <div>
                         <h2 class="card-title">Secure Sign In</h2>
-                    <p class="card-subtitle">Authenticate to update the central Linkage Board</p>
+                    <p class="card-subtitle">Authenticate to update the central LYNKedge Board</p>
                 </div>
             </div>
             <form method="post" action="/login" class="entry-form" autocomplete="on">
@@ -555,7 +555,7 @@ def login_page(message=""):
                 __MESSAGE_HTML__
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">
-                        <span>Sign In to LYNKEDGE</span>
+                        <span>Sign In to LYNKedge</span>
                     </button>
                 </div>
             </form>
