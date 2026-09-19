@@ -17,8 +17,6 @@ DATA_FILE = os.environ.get(
     "LYNKEDGE_DATA_FILE",
     os.path.join(DIRECTORY, "lynkedge_data.json")
 )
-USERNAME = os.environ.get("LYNKEDGE_USERNAME", "admin")
-PASSWORD = os.environ.get("LYNKEDGE_PASSWORD", "admin")
 AUTH_FILE = os.environ.get(
     "LYNKEDGE_AUTH_FILE",
     os.path.join(DIRECTORY, "lynkedge_users.json")
@@ -34,17 +32,12 @@ PERMISSION_LEVELS = {
     "manage_structure": 3,
     "manage_accounts": 3,
 }
-DEFAULT_ACCOUNTS = {
-    "entry": {"level": 1, "password": "entry123"},
-    "control": {"level": 2, "password": "control123"},
-    "admin": {"level": 3, "password": "admin123"},
-}
-
 RECOVERY_CODE = "lynkedge@123"
 
 DEFAULT_STATE = {
     "area": "COMPRESSION-VII",
     "unit_number": "UNIT VII PDII",
+    "document_number": "",
     "equipment_codes": "TM-061, TM-021, GA-T-AC-0410",
     "status": "",
     "status_options": [],
@@ -121,17 +114,19 @@ def load_accounts():
     try:
         with open(AUTH_FILE, "r", encoding="utf-8") as auth_file:
             accounts = json.load(auth_file)
-        if isinstance(accounts, dict) and len(accounts) == 3 and all(
-            isinstance(item, dict) and item.get("level") in (1, 2, 3) and item.get("password")
-            for item in accounts.values()
-        ):
-            return accounts
-    except (OSError, ValueError, TypeError):
-        pass
-    accounts = {}
-    for username, account in DEFAULT_ACCOUNTS.items():
-        accounts[username] = {"level": account["level"], "password": hash_password(account["password"])}
-    save_accounts(accounts)
+    except (OSError, ValueError, TypeError) as error:
+        raise RuntimeError("Unable to load the configured account file: {}".format(error)) from error
+    if not isinstance(accounts, dict) or len(accounts) != 3:
+        raise RuntimeError("The account file must contain exactly three accounts")
+    levels = []
+    for username, account in accounts.items():
+        if not isinstance(username, str) or not username.strip():
+            raise RuntimeError("Account usernames must be non-empty strings")
+        if not isinstance(account, dict) or account.get("level") not in (1, 2, 3) or not account.get("password"):
+            raise RuntimeError("Each account must have a valid level and password hash")
+        levels.append(account["level"])
+    if sorted(levels) != [1, 2, 3]:
+        raise RuntimeError("The account file must contain one account at each permission level")
     return accounts
 
 
@@ -209,7 +204,7 @@ def normalize_selectable_fields(value):
                 continue
             group_items.append({"key": key.strip(), "label": label.strip()})
             used_keys.add(key)
-        normalized[group] = group_items or [dict(item) for item in defaults]
+        normalized[group] = group_items
     return normalized
 
 
@@ -884,6 +879,7 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
 
             area = data.get("area", previous_state.get("area", ""))
             unit_number = data.get("unit_number", previous_state.get("unit_number", ""))
+            document_number = data.get("document_number", previous_state.get("document_number", ""))
             equipment_codes = data.get("equipment_codes", previous_state.get("equipment_codes", ""))
             status = data.get("status", "")
             status_options = normalize_status_options(data.get("status_options", [])) if has_permission(account, "manage_options") else previous_state.get("status_options", [])
@@ -922,21 +918,12 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             material_name = data.get("material_name", "")
             batch_number = data.get("batch_number", "")
             sap_batch_number = data.get("sap_batch_number", "")
-            previous_name_type = normalize_selection(
-                data.get("previous_name_type"),
-                tuple(item["key"] for item in selectable_fields["previous_name"]),
-                selectable_fields["previous_name"][0]["key"],
-            )
-            current_name_type = normalize_selection(
-                data.get("current_name_type"),
-                tuple(item["key"] for item in selectable_fields["current_name"]),
-                selectable_fields["current_name"][0]["key"],
-            )
-            batch_type = normalize_selection(
-                data.get("batch_type"),
-                tuple(item["key"] for item in selectable_fields["batch"]),
-                selectable_fields["batch"][0]["key"],
-            )
+            previous_name_keys = tuple(item["key"] for item in selectable_fields["previous_name"])
+            current_name_keys = tuple(item["key"] for item in selectable_fields["current_name"])
+            batch_keys = tuple(item["key"] for item in selectable_fields["batch"])
+            previous_name_type = normalize_selection(data.get("previous_name_type"), previous_name_keys, previous_name_keys[0] if previous_name_keys else "")
+            current_name_type = normalize_selection(data.get("current_name_type"), current_name_keys, current_name_keys[0] if current_name_keys else "")
+            batch_type = normalize_selection(data.get("batch_type"), batch_keys, batch_keys[0] if batch_keys else "")
             cleaning_valid_up_to = data.get("cleaning_valid_up_to", "")
             clean_before_datetime = data.get("clean_before_datetime", "")
             updated_by = data.get("updated_by", "")
@@ -948,8 +935,10 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
 
             if has_permission(account, "edit_unit_info"):
                 unit_number = data.get("unit_number", previous_state.get("unit_number", ""))
+                document_number = data.get("document_number", previous_state.get("document_number", ""))
             else:
                 unit_number = previous_state.get("unit_number", "")
+                document_number = previous_state.get("document_number", "")
 
             if product_name and product_name.strip() and product_name.strip() not in product_name_options:
                 product_name_options.append(product_name.strip())
@@ -995,6 +984,7 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
                 state.update({
                     "area": str(area or "").strip(),
                     "unit_number": str(unit_number or "").strip(),
+                    "document_number": str(document_number or "").strip(),
                     "equipment_codes": str(equipment_codes or "").strip(),
                     "status": str(status or "").strip(),
                     "status_options": status_options,
@@ -1056,7 +1046,7 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(response)
                 return
-            self.last_authenticated_username = username if username in ACCOUNTS else USERNAME
+            self.last_authenticated_username = username
             self.redirect_with_session("/edit")
         except (ValueError, UnicodeDecodeError):
             json_response(self, 400, {"success": False, "message": "Invalid login request"})
@@ -1078,11 +1068,7 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
 
     def authenticate(self, username, password):
         account = ACCOUNTS.get(str(username))
-        if account is not None and password_matches(password, account.get("password")):
-            return True
-        if PASSWORD is None:
-            return False
-        return hmac_compare(username, USERNAME) and hmac_compare(password, PASSWORD)
+        return account is not None and password_matches(password, account.get("password"))
 
     def handle_forgot_password_verify(self):
         try:
@@ -1188,6 +1174,9 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             with AUTH_LOCK:
                 ACCOUNTS[target_username]["password"] = hash_password(new_password)
                 save_accounts(ACCOUNTS)
+                for token, username in list(SESSIONS.items()):
+                    if username == target_username:
+                        del SESSIONS[token]
             json_response(self, 200, {"success": True, "message": "Password changed successfully"})
         except (ValueError, TypeError, json.JSONDecodeError) as error:
             json_response(self, 400, {"success": False, "message": str(error)})
@@ -1261,8 +1250,6 @@ class ThreadingHTTPServer(http.server.ThreadingHTTPServer):
 
 
 if __name__ == "__main__":
-    if PASSWORD is None:
-        raise SystemExit("Set LYNKEDGE_PASSWORD before starting the server")
     with ThreadingHTTPServer(("0.0.0.0", PORT), LynkEdgeHandler) as httpd:
         print("==================================================")
         print("  LynkEdge Web Server is running on 0.0.0.0:8080")

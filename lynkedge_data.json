@@ -1,35 +1,42 @@
 {
   "area": "COMPRESSION-VII",
   "unit_number": "unit vii",
-  "equipment_codes": "123456",
-  "status": "CLEANED",
+  "document_number": "9192-92h-282",
+  "equipment_codes": "ABE132-AGVCCAI67-HIGCCA-733",
+  "status": "IN PROCESS",
   "status_options": [
     "IN OPERATION",
-    "CLEANED"
+    "CLEANED",
+    "CHECKED",
+    "IN PROCESS"
   ],
-  "product_name_options": [],
+  "product_name_options": [
+    "abcde"
+  ],
   "material_name_options": [
-    "Corn Starch"
+    "ASPIRIN"
   ],
   "previous_product_name_options": [
     "Aspirin 100mg"
   ],
-  "previous_material_name_options": [],
+  "previous_material_name_options": [
+    "ZEDEX P"
+  ],
   "batch_number_options": [
     "df"
   ],
   "sap_batch_number_options": [
     "SAP-8001"
   ],
-  "previous_product_name": "Aspirin 100mg",
-  "previous_material_name": "",
-  "previous_name_type": "previous_product_name",
+  "previous_product_name": "",
+  "previous_material_name": "ZEDEX P",
+  "previous_name_type": "previous_material_name",
   "product_name": "",
-  "material_name": "",
-  "current_name_type": "product_name",
-  "batch_number": "df",
-  "sap_batch_number": "",
-  "batch_type": "batch_number",
+  "material_name": "ASPIRIN",
+  "current_name_type": "material_name",
+  "batch_number": "",
+  "sap_batch_number": "SAP-8001",
+  "batch_type": "sap_batch_number",
   "cleaning_valid_up_to": "2026-09-09",
   "clean_before_datetime": "2026-09-22T19:19",
   "updated_by": "Zuneira",
@@ -77,26 +84,32 @@
     ]
   },
   "selectable_field_values": {
-    "status": "CLEANED",
+    "status": "IN PROCESS",
     "previous_product_name": "Aspirin 100mg",
-    "previous_material_name": "",
+    "previous_material_name": "ZEDEX P",
     "product_name": "",
-    "material_name": "",
-    "batch_number": "df",
-    "sap_batch_number": ""
+    "material_name": "ASPIRIN",
+    "batch_number": "",
+    "sap_batch_number": "SAP-8001"
   },
   "selectable_field_options": {
     "status": [
       "IN OPERATION",
-      "CLEANED"
+      "CLEANED",
+      "CHECKED",
+      "IN PROCESS"
     ],
     "previous_product_name": [
       "Aspirin 100mg"
     ],
-    "previous_material_name": [],
-    "product_name": [],
+    "previous_material_name": [
+      "ZEDEX P"
+    ],
+    "product_name": [
+      "abcde"
+    ],
     "material_name": [
-      "Corn Starch"
+      "ASPIRIN"
     ],
     "batch_number": [
       "df"
@@ -110,7 +123,7 @@
   "production_kits": 0,
   "board_status": "RUNNING",
   "tablet_connected": true,
-  "last_updated": "15:19:36",
+  "last_updated": "12:05:56",
   "previous_name_options": [
     "Aspirin 100mg",
     "Cough Syrup 100ml"

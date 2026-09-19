@@ -79,6 +79,9 @@ body.control-page::after {
 }
 
 .control-heading {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 190px;
   text-align: center;
   color: #123995;
 }
@@ -96,6 +99,7 @@ body.control-page::after {
   font-size: clamp(1rem, 1.9vw, 1.55rem);
   font-weight: 800;
   letter-spacing: 0.02em;
+  line-height: 1.15;
 }
 
 .control-heading p {
@@ -184,6 +188,35 @@ body.control-page::after {
 .brand-unit-input:focus {
   border-bottom-color: var(--accent-blue);
   background: rgba(255, 255, 255, 0.35);
+}
+
+.brand-document-input {
+  width: 170px;
+  margin-top: 2px;
+  font-size: 0.58rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.brand-document-input::placeholder {
+  color: rgba(13, 82, 161, 0.58);
+}
+
+@media (max-width: 760px) {
+  .control-heading {
+    padding: 0 12px;
+  }
+
+  .control-heading h1 {
+    padding-top: 58px;
+  }
+
+  .control-header .brand-block {
+    top: 0;
+    right: 12px;
+    transform: scale(0.78);
+    transform-origin: top right;
+  }
 }
 
 .board-panel {
@@ -555,6 +588,25 @@ body.control-page::after {
   background: #0876ed;
   color: #fff;
   box-shadow: 0 3px 0 rgba(4, 74, 165, 0.22);
+}
+
+.remove-confirm-card h2 {
+  margin-bottom: 8px;
+  font-size: clamp(1.25rem, 2.5vw, 1.7rem);
+}
+
+.confirm-remove-btn {
+  min-width: 150px;
+  min-height: 54px;
+  border: 0;
+  border-radius: 10px;
+  background: #d83f58;
+  color: #fff;
+  box-shadow: 0 3px 0 rgba(146, 29, 50, 0.22);
+  font: inherit;
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .option-row {
@@ -1177,6 +1229,19 @@ body.display-mode {
   border-radius: 12px;
   overflow: hidden;
   background: #001a2b;
+}
+
+.display-document-number {
+  margin-top: 12px;
+  margin-left: auto;
+  width: max-content;
+  max-width: 100%;
+  text-align: right;
+  color: #9fe8ff;
+  font-size: clamp(0.8rem, 1vw, 1.05rem);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 10px rgba(122, 209, 255, 0.35);
 }
 
 .display-row {

@@ -29,6 +29,7 @@
         <div class="brand-meta">
           <span>GOA</span>
           <input id="unitNumber" name="unit_number" class="brand-unit-input" type="text" value="UNIT VII PDII" aria-label="Unit number">
+          <input id="documentNumber" name="document_number" class="brand-unit-input brand-document-input" type="text" aria-label="Document number">
         </div>
       </div>
     </header>
@@ -209,6 +210,28 @@
       <div class="status-modal-actions">
         <button type="button" id="cancelUsernameBtn" class="cancel-status-btn">Cancel</button>
         <button type="button" id="submitUsernameBtn" class="confirm-status-btn">Change username</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="removeConfirmModal" class="status-modal hidden" role="dialog" aria-modal="true" aria-labelledby="removeConfirmTitle">
+    <div class="status-modal-card remove-confirm-card">
+      <button type="button" id="closeRemoveConfirmBtn" class="close-status-modal" aria-label="Close">×</button>
+      <h2 id="removeConfirmTitle">Are you sure you want to remove this?</h2>
+      <div class="status-modal-actions">
+        <button type="button" id="cancelRemoveBtn" class="cancel-status-btn">Cancel</button>
+        <button type="button" id="confirmRemoveBtn" class="confirm-remove-btn">Remove</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="submitConfirmModal" class="status-modal hidden" role="dialog" aria-modal="true" aria-labelledby="submitConfirmTitle">
+    <div class="status-modal-card submit-confirm-card">
+      <button type="button" id="closeSubmitConfirmBtn" class="close-status-modal" aria-label="Close">×</button>
+      <h2 id="submitConfirmTitle">Are you sure you want to submit?</h2>
+      <div class="status-modal-actions">
+        <button type="button" id="cancelSubmitBtn" class="cancel-status-btn">Cancel</button>
+        <button type="button" id="confirmSubmitBtn" class="confirm-status-btn">Submit</button>
       </div>
     </div>
   </div>

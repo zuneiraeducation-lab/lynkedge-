@@ -33,8 +33,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const submitUsernameBtn = document.getElementById('submitUsernameBtn');
   const usernameFields = document.getElementById('usernameFields');
   const usernameFeedback = document.getElementById('usernameFeedback');
+  const removeConfirmModal = document.getElementById('removeConfirmModal');
+  const closeRemoveConfirmBtn = document.getElementById('closeRemoveConfirmBtn');
+  const cancelRemoveBtn = document.getElementById('cancelRemoveBtn');
+  const confirmRemoveBtn = document.getElementById('confirmRemoveBtn');
+  const submitConfirmModal = document.getElementById('submitConfirmModal');
+  const closeSubmitConfirmBtn = document.getElementById('closeSubmitConfirmBtn');
+  const cancelSubmitBtn = document.getElementById('cancelSubmitBtn');
+  const confirmSubmitBtn = document.getElementById('confirmSubmitBtn');
   let usernameMap = {};
   let fieldNamesEditMode = false;
+  let pendingRemoval = null;
+  let pendingSubmission = null;
 
   const permissions = {
     basic_update: false,
@@ -49,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const fieldMap = {
     area: document.getElementById('area'),
     unit_number: document.getElementById('unitNumber'),
+    document_number: document.getElementById('documentNumber'),
     equipment_codes: document.getElementById('equipmentCodes'),
     status: document.getElementById('status'),
     previous_name_value: document.getElementById('previousNameValue'),
@@ -113,6 +124,11 @@ document.addEventListener('DOMContentLoaded', () => {
     current_name: [],
     batch: []
   };
+  const selectedFieldKeys = {
+    previous_name: '',
+    current_name: '',
+    batch: ''
+  };
   const fieldGroupConfig = {
     previous_name: { container: 'previousNameFields', radioName: 'previousNameType', picker: 'previous_name' },
     current_name: { container: 'currentNameFields', radioName: 'currentNameType', picker: 'current_name' },
@@ -120,6 +136,46 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   let activeModalTarget = null;
+
+  function closeRemoveConfirmModal() {
+    if (removeConfirmModal) removeConfirmModal.classList.add('hidden');
+    pendingRemoval = null;
+  }
+
+  function requestRemoval(removal) {
+    pendingRemoval = removal;
+    if (removeConfirmModal) removeConfirmModal.classList.remove('hidden');
+  }
+
+  if (closeRemoveConfirmBtn) closeRemoveConfirmBtn.addEventListener('click', closeRemoveConfirmModal);
+  if (cancelRemoveBtn) cancelRemoveBtn.addEventListener('click', closeRemoveConfirmModal);
+  if (confirmRemoveBtn) {
+    confirmRemoveBtn.addEventListener('click', () => {
+      const removal = pendingRemoval;
+      closeRemoveConfirmModal();
+      if (removal) removal();
+    });
+  }
+
+  function closeSubmitConfirmModal() {
+    if (submitConfirmModal) submitConfirmModal.classList.add('hidden');
+    pendingSubmission = null;
+  }
+
+  function openSubmitConfirmModal(submission) {
+    pendingSubmission = submission;
+    if (submitConfirmModal) submitConfirmModal.classList.remove('hidden');
+  }
+
+  if (closeSubmitConfirmBtn) closeSubmitConfirmBtn.addEventListener('click', closeSubmitConfirmModal);
+  if (cancelSubmitBtn) cancelSubmitBtn.addEventListener('click', closeSubmitConfirmModal);
+  if (confirmSubmitBtn) {
+    confirmSubmitBtn.addEventListener('click', async () => {
+      const submission = pendingSubmission;
+      closeSubmitConfirmModal();
+      if (submission) await submission();
+    });
+  }
 
   function showFeedback(type, message) {
     if (!feedbackBanner || !feedbackText || !feedbackIcon) return;
@@ -152,9 +208,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getActiveSubKey(pickerKey) {
     if (pickerKey === 'status') return 'status';
-    if (pickerKey === 'previous_name') return selectedValue('previousNameType') || 'previous_product_name';
-    if (pickerKey === 'current_name') return selectedValue('currentNameType') || 'product_name';
-    if (pickerKey === 'batch') return selectedValue('batchType') || 'batch_number';
+    if (pickerKey === 'previous_name') return selectedFieldKeys.previous_name;
+    if (pickerKey === 'current_name') return selectedFieldKeys.current_name;
+    if (pickerKey === 'batch') return selectedFieldKeys.batch;
     return pickerKey;
   }
 
@@ -164,13 +220,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!container) return;
     const currentKey = getActiveSubKey(config.picker);
     container.innerHTML = '';
-    selectableFields[group].forEach((field, index) => {
+    selectableFields[group].forEach((field) => {
       const item = document.createElement('span');
       const radio = document.createElement('input');
       radio.type = 'radio';
       radio.name = config.radioName;
       radio.value = field.key;
-      radio.checked = field.key === currentKey || (!currentKey && index === 0);
+      radio.checked = field.key === currentKey;
+      radio.addEventListener('change', () => {
+        if (radio.checked) selectedFieldKeys[group] = field.key;
+        renderPicker(config.picker);
+      });
       const label = document.createElement('span');
       label.className = 'selectable-field-label';
       if (fieldNamesEditMode && permissions.edit_field_names) {
@@ -200,13 +260,19 @@ document.addEventListener('DOMContentLoaded', () => {
       remove.className = 'field-name-control field-name-remove';
       remove.textContent = '× Remove';
       remove.title = 'Delete selected field name';
-      remove.addEventListener('click', () => {
-        const selectedField = selectableFields[group].find((field) => field.key === getActiveSubKey(config.picker));
-        if (!selectedField || selectableFields[group].length <= 1) return;
-        selectableFields[group] = selectableFields[group].filter((field) => field.key !== selectedField.key);
-        renderSelectableFields(group);
-        renderPicker(config.picker);
-      });
+      remove.disabled = !currentKey;
+      remove.addEventListener('click', () => requestRemoval(() => {
+          const selectedKey = selectedFieldKeys[group];
+          if (!selectedKey) return;
+          const selectedIndex = selectableFields[group].findIndex((field) => field.key === selectedKey);
+          if (selectedIndex < 0) return;
+          selectableFields[group].splice(selectedIndex, 1);
+          selectedFieldKeys[group] = selectableFields[group].length
+            ? selectableFields[group][selectableFields[group].length - 1].key
+            : '';
+          renderSelectableFields(group);
+          renderPicker(config.picker);
+        }));
 
       const add = document.createElement('button');
       add.type = 'button';
@@ -343,11 +409,13 @@ document.addEventListener('DOMContentLoaded', () => {
       deleteButton.setAttribute('aria-label', `Remove ${opt}`);
       deleteButton.addEventListener('click', (event) => {
         event.stopPropagation();
-        optionsStore[subKey] = optionsStore[subKey].filter((item) => item !== opt);
-        if (valuesStore[subKey] === opt) {
-          valuesStore[subKey] = '';
-        }
-        renderPicker(pickerKey);
+        requestRemoval(() => {
+          optionsStore[subKey] = optionsStore[subKey].filter((item) => item !== opt);
+          if (valuesStore[subKey] === opt) {
+            valuesStore[subKey] = '';
+          }
+          renderPicker(pickerKey);
+        });
       });
 
       if (permissions.manage_options) {
@@ -414,6 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let suffix = 2;
         while (selectableFields[group].some((field) => field.key === key)) key = `${keyBase}_${suffix++}`;
         selectableFields[group].push({ key, label: val });
+        selectedFieldKeys[group] = key;
         optionsStore[key] = [];
         valuesStore[key] = '';
         renderSelectableFields(group);
@@ -522,7 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
     removeBtn.className = 'remove-row-btn';
     removeBtn.textContent = '×';
     removeBtn.setAttribute('aria-label', 'Remove custom row');
-    removeBtn.addEventListener('click', () => row.remove());
+    removeBtn.addEventListener('click', () => requestRemoval(() => row.remove()));
 
     const confirmBtn = document.createElement('button');
     confirmBtn.type = 'button';
@@ -578,7 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function populateFormFromState(data) {
     // Populate simple inputs
-    ['area', 'unit_number', 'equipment_codes', 'cleaning_valid_up_to', 'clean_before_datetime', 'updated_by', 'updated_on'].forEach((key) => {
+    ['area', 'unit_number', 'document_number', 'equipment_codes', 'cleaning_valid_up_to', 'clean_before_datetime', 'updated_by', 'updated_on'].forEach((key) => {
       const field = fieldMap[key];
       if (!field || data[key] === undefined || data[key] === null) return;
       field.value = String(data[key]);
@@ -629,15 +698,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const previousKeys = selectableFields.previous_name.map((field) => field.key);
     const currentKeys = selectableFields.current_name.map((field) => field.key);
     const batchKeys = selectableFields.batch.map((field) => field.key);
-    const previousKey = previousKeys.includes(data.previous_name_type)
-      ? data.previous_name_type
-      : (previousKeys[0] || 'previous_product_name');
-    const currentKey = currentKeys.includes(data.current_name_type)
-      ? data.current_name_type
-      : (currentKeys[0] || 'product_name');
-    const batchKey = batchKeys.includes(data.batch_type)
-      ? data.batch_type
-      : (batchKeys[0] || 'batch_number');
+    const previousKey = previousKeys.includes(data.previous_name_type) ? data.previous_name_type : (previousKeys[0] || '');
+    const currentKey = currentKeys.includes(data.current_name_type) ? data.current_name_type : (currentKeys[0] || '');
+    const batchKey = batchKeys.includes(data.batch_type) ? data.batch_type : (batchKeys[0] || '');
+    selectedFieldKeys.previous_name = previousKey;
+    selectedFieldKeys.current_name = currentKey;
+    selectedFieldKeys.batch = batchKey;
 
     renderAllSelectableFields();
     const previousRadio = document.querySelector(`input[name="previousNameType"][value="${previousKey}"]`);
@@ -690,6 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addRowBtn) addRowBtn.classList.toggle('hidden', !permissions.manage_structure);
     if (editLabelsBtn) editLabelsBtn.classList.toggle('hidden', !permissions.edit_field_names);
     if (fieldMap.unit_number) fieldMap.unit_number.readOnly = !permissions.edit_unit_info;
+    if (fieldMap.document_number) fieldMap.document_number.readOnly = !permissions.edit_unit_info;
     if (permissions.manage_accounts) {
       accountSettingsPanel.classList.remove('hidden');
     }
@@ -894,6 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const payload = {
         area: fieldMap.area ? fieldMap.area.value.trim() : '',
         unit_number: fieldMap.unit_number ? fieldMap.unit_number.value.trim() : '',
+        document_number: fieldMap.document_number ? fieldMap.document_number.value.trim() : '',
         equipment_codes: fieldMap.equipment_codes ? fieldMap.equipment_codes.value.trim() : '',
         status: valuesStore.status || '',
         status_options: optionsStore.status,
@@ -945,38 +1013,40 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Updating...';
-      }
-
-      try {
-        const response = await fetch('/api/update', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-        if (response.ok && result.success) {
-          showFeedback('success', 'Production data saved successfully! Returning to display...');
-          if (result.custom_rows) {
-            populateFormFromState({ ...payload, custom_rows: result.custom_rows });
-          }
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 800);
-        } else {
-          showFeedback('error', result.message || 'Unable to save data.');
-        }
-      } catch (error) {
-        showFeedback('error', 'Could not reach MYIR server.');
-      } finally {
+      openSubmitConfirmModal(async () => {
         if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Submit';
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Updating...';
         }
-      }
+
+        try {
+          const response = await fetch('/api/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const result = await response.json();
+          if (response.ok && result.success) {
+            showFeedback('success', 'Production data saved successfully! Returning to display...');
+            if (result.custom_rows) {
+              populateFormFromState({ ...payload, custom_rows: result.custom_rows });
+            }
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 800);
+          } else {
+            showFeedback('error', result.message || 'Unable to save data.');
+          }
+        } catch (error) {
+          showFeedback('error', 'Could not reach MYIR server.');
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit';
+          }
+        }
+      });
     });
   }
 
