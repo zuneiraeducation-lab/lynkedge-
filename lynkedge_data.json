@@ -41,18 +41,7 @@
   "clean_before_datetime": "2026-09-22T19:19",
   "updated_by": "Zuneira",
   "updated_on": "2026-09-05",
-  "custom_rows": [
-    {
-      "label": "sqss",
-      "value": "wsws",
-      "type": "text"
-    },
-    {
-      "label": "swqsw",
-      "value": "qwswqs",
-      "type": "text"
-    }
-  ],
+  "custom_rows": [],
   "field_labels": {
     "area": "Area",
     "equipment_codes": "Fixed Equipment & Accessories Code",
@@ -101,7 +90,8 @@
     "product_name": "",
     "material_name": "ASPIRIN",
     "batch_number": "",
-    "sap_batch_number": "SAP-8001"
+    "sap_batch_number": "SAP-8001",
+    "previous_name_geg": ""
   },
   "selectable_field_options": {
     "status": [
@@ -127,14 +117,15 @@
     ],
     "sap_batch_number": [
       "SAP-8001"
-    ]
+    ],
+    "previous_name_geg": []
   },
   "in_charge": "Zuneira",
   "working": 0,
   "production_kits": 0,
   "board_status": "RUNNING",
   "tablet_connected": true,
-  "last_updated": "13:49:09",
+  "last_updated": "14:01:24",
   "previous_name_options": [
     "Aspirin 100mg",
     "Cough Syrup 100ml"
