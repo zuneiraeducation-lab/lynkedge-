@@ -550,14 +550,13 @@ def login_page(message=""):
             <div class="brand-group">
                 <div class="brand-text">
                     <h1 class="brand-title">LYNKedge</h1>
-                    <p class="brand-subtitle">Production LYNKedge System</p>
                 </div>
             </div>
         </header>
         <section class="card data-card">
             <div class="card-header">
                 <div>
-                        <h2 class="card-title">Secure Sign In</h2>
+                        <h2 class="card-title">Sign In</h2>
                     <p class="card-subtitle">Authenticate to update the central LYNKedge Board</p>
                 </div>
             </div>

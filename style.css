@@ -1826,7 +1826,7 @@ html[data-theme="dark"] body:not(.control-page):not(.display-mode) {
     radial-gradient(ellipse at 18% 78%, rgba(14, 56, 92, 0.4) 0%, rgba(10, 32, 54, 0.2) 28%, transparent 55%),
     radial-gradient(ellipse at 78% 18%, rgba(14, 72, 115, 0.35) 0%, rgba(8, 30, 50, 0.18) 30%, transparent 58%),
     linear-gradient(135deg, #09111c 0%, #0c1827 35%, #081320 70%, #050c16 100%);
-  color: #e2eaf4;
+  color: #dff0f8;
 }
 
 html[data-theme="dark"] body.control-page::before,
@@ -1951,24 +1951,20 @@ html[data-theme="dark"] .display-brand-meta.small {
 }
 
 html[data-theme="dark"] .display-main-title,
-html[data-theme="dark"] .control-heading,
-html[data-theme="dark"] .control-heading p,
+html[data-theme="dark"] .control-heading h1,
 html[data-theme="dark"] body:not(.control-page):not(.display-mode) .brand-title,
 html[data-theme="dark"] body:not(.control-page):not(.display-mode) .card-title {
-  color: #e0f2fe;
+  color: #e0edf5;
 }
 
-html[data-theme="dark"] .control-heading h1 {
-  color: #f0f9ff;
-}
-
-html[data-theme="dark"] .control-heading p {
-  color: #7dd3fc;
+html[data-theme="dark"] .control-heading p,
+html[data-theme="dark"] body:not(.control-page):not(.display-mode) .brand-subtitle,
+html[data-theme="dark"] body:not(.control-page):not(.display-mode) .card-subtitle {
+  color: #76b7d2;
 }
 
 html[data-theme="dark"] .display-main-title {
   margin: -6px 0 16px;
-  color: #bae6fd;
   font-size: clamp(1.1rem, 1.8vw, 1.6rem);
   text-shadow: 0 0 24px rgba(56, 189, 248, 0.25);
 }
@@ -2078,7 +2074,7 @@ html[data-theme="dark"] .display-label {
   border-radius: 8px;
   border: 1px solid rgba(56, 110, 160, 0.35);
   background: linear-gradient(135deg, rgba(16, 36, 60, 0.85) 0%, rgba(12, 28, 48, 0.75) 100%);
-  color: #93c5fd;
+  color: #76b7d2;
   font-size: clamp(0.85rem, 1.15vw, 1.05rem);
   font-weight: 700;
   box-shadow:
@@ -2098,7 +2094,7 @@ html[data-theme="dark"] .display-value {
   border-radius: 8px;
   border: 1px solid rgba(56, 110, 160, 0.3);
   background: linear-gradient(135deg, rgba(12, 25, 42, 0.9) 0%, rgba(9, 20, 35, 0.82) 100%);
-  color: #f8fafc;
+  color: #dff0f8;
   font-size: clamp(0.85rem, 1.15vw, 1.05rem);
   font-weight: 600;
   box-shadow:
@@ -2111,8 +2107,15 @@ html[data-theme="dark"] .display-value {
   word-break: break-word;
 }
 
+html[data-theme="dark"] .entry-label,
+html[data-theme="dark"] .radio-label,
+html[data-theme="dark"] .radio-options,
+html[data-theme="dark"] .selectable-field-label,
+html[data-theme="dark"] .custom-row .custom-label {
+  color: #76b7d2;
+}
+
 html[data-theme="dark"] .entry-label {
-  color: #93c5fd;
   background: rgba(16, 36, 60, 0.8);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
@@ -2121,14 +2124,25 @@ html[data-theme="dark"] .field-box,
 html[data-theme="dark"] .field-input,
 html[data-theme="dark"] .field-select,
 html[data-theme="dark"] .field-label-editor,
-html[data-theme="dark"] .custom-row .custom-label,
 html[data-theme="dark"] .custom-row .custom-value,
 html[data-theme="dark"] .status-picker-btn,
-html[data-theme="dark"] .status-native-select {
+html[data-theme="dark"] .status-native-select,
+html[data-theme="dark"] .selectable-field-label-input {
   border-color: rgba(56, 110, 160, 0.45);
   background: rgba(10, 22, 38, 0.85);
-  color: #f1f5f9;
+  color: #dff0f8;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="dark"] input[type="date"],
+html[data-theme="dark"] input[type="datetime-local"] {
+  color: #dff0f8;
+}
+
+html[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+html[data-theme="dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85) sepia(0.2) saturate(2) hue-rotate(165deg);
+  cursor: pointer;
 }
 
 html[data-theme="dark"] .brand-unit-input,
@@ -2164,28 +2178,26 @@ html[data-theme="dark"] body:not(.control-page):not(.display-mode) .btn-primary:
 html[data-theme="dark"] .add-row-btn,
 html[data-theme="dark"] .field-name-control,
 html[data-theme="dark"] .add-status-btn,
-html[data-theme="dark"] .cancel-status-btn {
+html[data-theme="dark"] .cancel-status-btn,
+html[data-theme="dark"] .account-action-btn {
   border-color: rgba(56, 189, 248, 0.35);
   background: rgba(14, 32, 54, 0.75);
-  color: #7dd3fc;
+  color: #76b7d2;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 html[data-theme="dark"] .add-row-btn:hover,
 html[data-theme="dark"] .field-name-control:hover,
 html[data-theme="dark"] .add-status-btn:hover,
-html[data-theme="dark"] .cancel-status-btn:hover {
+html[data-theme="dark"] .cancel-status-btn:hover,
+html[data-theme="dark"] .account-action-btn:hover {
   background: #132a48;
-  color: #ffffff;
+  color: #dff0f8;
 }
 
 html[data-theme="dark"] .custom-rows-container {
   border-color: rgba(56, 110, 160, 0.35);
   background: rgba(10, 22, 38, 0.5);
-}
-
-html[data-theme="dark"] .radio-label {
-  color: #e2eaf4;
 }
 
 html[data-theme="dark"] .status-options-list {
@@ -2195,7 +2207,7 @@ html[data-theme="dark"] .status-options-list {
 }
 
 html[data-theme="dark"] .status-option {
-  color: #e2eaf4;
+  color: #dff0f8;
 }
 
 html[data-theme="dark"] .status-option:hover {
@@ -2206,23 +2218,23 @@ html[data-theme="dark"] .status-modal-card,
 html[data-theme="dark"] .forgot-modal-card {
   border-color: rgba(56, 110, 160, 0.45);
   background: #0d1b2c;
-  color: #e2eaf4;
+  color: #dff0f8;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
 }
 
 html[data-theme="dark"] .status-modal-card h2,
 html[data-theme="dark"] .forgot-modal-card h2 {
-  color: #e0f2fe;
+  color: #e0edf5;
 }
 
 html[data-theme="dark"] .close-status-modal,
 html[data-theme="dark"] .forgot-close-btn {
-  color: #94a3b8;
+  color: #76b7d2;
 }
 
 html[data-theme="dark"] .close-status-modal:hover,
 html[data-theme="dark"] .forgot-close-btn:hover {
-  color: #f1f5f9;
+  color: #dff0f8;
 }
 
 html[data-theme="dark"] .status-modal-input,
@@ -2232,18 +2244,19 @@ html[data-theme="dark"] .password-input-wrap input,
 html[data-theme="dark"] #recoveryCodeInput {
   background: #081320;
   border-color: rgba(56, 110, 160, 0.45);
-  color: #f8fafc;
+  color: #dff0f8;
 }
 
 html[data-theme="dark"] .password-account-choices,
+html[data-theme="dark"] .password-account-choices label,
 html[data-theme="dark"] .username-field-label,
 html[data-theme="dark"] .password-fields > label,
 html[data-theme="dark"] .forgot-field label {
-  color: #93c5fd;
+  color: #76b7d2;
 }
 
 html[data-theme="dark"] .password-visibility-btn svg {
-  stroke: #7dd3fc;
+  stroke: #76b7d2;
 }
 
 html[data-theme="dark"] body:not(.control-page):not(.display-mode) .input-wrapper {
@@ -2255,13 +2268,13 @@ html[data-theme="dark"] body:not(.control-page):not(.display-mode) .input-wrappe
 }
 
 html[data-theme="dark"] body:not(.control-page):not(.display-mode) .form-input {
-  color: #f8fafc;
+  color: #dff0f8;
 }
 
 html[data-theme="dark"] body:not(.control-page):not(.display-mode) .form-label,
 html[data-theme="dark"] body:not(.control-page):not(.display-mode) .card-subtitle,
 html[data-theme="dark"] body:not(.control-page):not(.display-mode) .brand-subtitle {
-  color: #94a3b8;
+  color: #76b7d2;
 }
 
 html[data-theme="dark"] body:not(.control-page):not(.display-mode) .forgot-password-link {
@@ -2269,7 +2282,7 @@ html[data-theme="dark"] body:not(.control-page):not(.display-mode) .forgot-passw
 }
 
 html[data-theme="dark"] body:not(.control-page):not(.display-mode) .forgot-password-link:hover {
-  color: #7dd3fc;
+  color: #76b7d2;
 }
 
 html[data-theme="dark"] body:not(.control-page):not(.display-mode) .feedback-banner.error {
@@ -2280,7 +2293,7 @@ html[data-theme="dark"] body:not(.control-page):not(.display-mode) .feedback-ban
 }
 
 html[data-theme="dark"] .display-document-number {
-  color: #7dd3fc;
+  color: #76b7d2;
 }
 
 @media (max-width: 900px) {
