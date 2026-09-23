@@ -1428,7 +1428,7 @@ body:not(.control-page):not(.display-mode) .feedback-banner.error {
 /* Optional glossy theme. The unscoped rules above remain the default theme. */
 .theme-toggle {
   position: fixed;
-  right: 14px;
+  left: 14px;
   bottom: 14px;
   z-index: 20;
   border: 1px solid rgba(66, 169, 255, 0.55);

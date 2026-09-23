@@ -90,8 +90,7 @@
     "product_name": "",
     "material_name": "ASPIRIN",
     "batch_number": "",
-    "sap_batch_number": "SAP-8001",
-    "previous_name_geg": ""
+    "sap_batch_number": "SAP-8001"
   },
   "selectable_field_options": {
     "status": [
@@ -117,15 +116,14 @@
     ],
     "sap_batch_number": [
       "SAP-8001"
-    ],
-    "previous_name_geg": []
+    ]
   },
   "in_charge": "Zuneira",
   "working": 0,
   "production_kits": 0,
   "board_status": "RUNNING",
   "tablet_connected": true,
-  "last_updated": "14:01:24",
+  "last_updated": "16:19:14",
   "previous_name_options": [
     "Aspirin 100mg",
     "Cough Syrup 100ml"

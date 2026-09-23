@@ -110,7 +110,35 @@ RECOVERY_CODE_HASHES = {
 }
 
 
+DEFAULT_INITIAL_ACCOUNTS = {
+    "Operator": {
+        "level": 1,
+        "password": {
+            "salt": "8343a2f28ebccd57826c0567dc3aa6de",
+            "hash": "1671e1e70c7dfbcf97143a1928fd8e35774974ea4b4fbcc44f3c092e5eaa697b"
+        }
+    },
+    "Manager": {
+        "level": 2,
+        "password": {
+            "salt": "b52e561a2575dbec5e7acbfba57a75da",
+            "hash": "ce37625a27480491c5e42f392910940c902e6b790e29700296ef0a4e0481c889"
+        }
+    },
+    "Service": {
+        "level": 3,
+        "password": {
+            "salt": "2efa030c7f1872f06b4ceb4f88c502a0",
+            "hash": "fdd6642ba6f83436d7c867038b2508bd0d399d6b898e3ea2896fe6b2db38dd5b"
+        }
+    }
+}
+
+
 def load_accounts():
+    if not os.path.exists(AUTH_FILE):
+        save_accounts(DEFAULT_INITIAL_ACCOUNTS)
+        return DEFAULT_INITIAL_ACCOUNTS
     try:
         with open(AUTH_FILE, "r", encoding="utf-8") as auth_file:
             accounts = json.load(auth_file)
@@ -570,9 +598,9 @@ def login_page(message=""):
 
             <div id="forgotStage1">
                 <div class="password-account-choices" role="radiogroup" aria-label="Select account">
-                    <label><input type="radio" name="forgotAccount" value="1" checked> Account 1</label>
-                    <label><input type="radio" name="forgotAccount" value="2"> Account 2</label>
-                    <label><input type="radio" name="forgotAccount" value="3"> Account 3</label>
+                    <label><input type="radio" name="forgotAccount" value="1" checked> Operator</label>
+                    <label><input type="radio" name="forgotAccount" value="2"> Manager</label>
+                    <label><input type="radio" name="forgotAccount" value="3"> Service</label>
                 </div>
                 <div class="forgot-field">
                     <label for="recoveryCodeInput">Recovery Code</label>
