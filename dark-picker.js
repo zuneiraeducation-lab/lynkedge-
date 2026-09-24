@@ -27,8 +27,13 @@
     return String(n).padStart(2, '0');
   }
 
+  function isCustomPickerTheme() {
+    const t = document.documentElement.dataset.theme;
+    return t === 'dark' || t === 'glossy';
+  }
+
   function isDarkTheme() {
-    return document.documentElement.dataset.theme === 'dark';
+    return isCustomPickerTheme();
   }
 
   function createPopup() {
