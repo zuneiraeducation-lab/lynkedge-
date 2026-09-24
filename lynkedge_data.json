@@ -1,44 +1,49 @@
 {
   "area": "COMPRESSION-VII",
   "unit_number": "unit vii",
-  "document_number": "9192-92h-2823#34%%^",
+  "document_number": "9192-92h-2823#34%%",
   "equipment_codes": "ABE132-AGVCCAI67-HIGCCA-733",
   "status": "IN PROCESS",
   "status_options": [
-    "IN OPERATION",
     "CLEANED",
     "CHECKED",
     "IN PROCESS"
   ],
   "product_name_options": [
-    "abcde"
+    "LACTOSE MONOHYDRATE"
   ],
   "material_name_options": [
-    "ASPIRIN"
+    "ASPIRIN",
+    "PARACETAMOL"
   ],
   "previous_product_name_options": [
-    "Aspirin 100mg"
+    "Aspirin 100mg",
+    "RINIFOL"
   ],
   "previous_material_name_options": [
-    "ZEDEX P"
+    "ZEDEX P",
+    "IBUJESIC -900mg"
   ],
   "batch_number_options": [
-    "df"
+    "BA-1580",
+    "BA-8903",
+    "BA-6980"
   ],
   "sap_batch_number_options": [
-    "SAP-8001"
+    "SAP-8001",
+    "SAP-6001"
   ],
   "previous_product_name": "",
   "previous_material_name": "ZEDEX P",
   "previous_name_type": "previous_material_name",
-  "product_name": "",
-  "material_name": "ASPIRIN",
-  "current_name_type": "material_name",
-  "batch_number": "",
-  "sap_batch_number": "SAP-8001",
-  "batch_type": "sap_batch_number",
-  "cleaning_valid_up_to": "2026-09-09",
-  "clean_before_datetime": "2026-09-22T19:19",
+  "product_name": "LACTOSE MONOHYDRATE",
+  "material_name": "",
+  "current_name_type": "product_name",
+  "batch_number": "BA-6980",
+  "sap_batch_number": "",
+  "batch_type": "batch_number",
+  "cleaning_valid_up_to": "2026-09-24",
+  "clean_before_datetime": "",
   "updated_by": "Zuneira",
   "updated_on": "2026-09-05",
   "custom_rows": [],
@@ -87,35 +92,40 @@
     "status": "IN PROCESS",
     "previous_product_name": "",
     "previous_material_name": "ZEDEX P",
-    "product_name": "",
-    "material_name": "ASPIRIN",
-    "batch_number": "",
-    "sap_batch_number": "SAP-8001"
+    "product_name": "LACTOSE MONOHYDRATE",
+    "material_name": "",
+    "batch_number": "BA-6980",
+    "sap_batch_number": ""
   },
   "selectable_field_options": {
     "status": [
-      "IN OPERATION",
       "CLEANED",
       "CHECKED",
       "IN PROCESS"
     ],
     "previous_product_name": [
-      "Aspirin 100mg"
+      "Aspirin 100mg",
+      "RINIFOL"
     ],
     "previous_material_name": [
-      "ZEDEX P"
+      "ZEDEX P",
+      "IBUJESIC -900mg"
     ],
     "product_name": [
-      "abcde"
+      "LACTOSE MONOHYDRATE"
     ],
     "material_name": [
-      "ASPIRIN"
+      "ASPIRIN",
+      "PARACETAMOL"
     ],
     "batch_number": [
-      "df"
+      "BA-1580",
+      "BA-8903",
+      "BA-6980"
     ],
     "sap_batch_number": [
-      "SAP-8001"
+      "SAP-8001",
+      "SAP-6001"
     ]
   },
   "in_charge": "Zuneira",
@@ -123,7 +133,7 @@
   "production_kits": 0,
   "board_status": "RUNNING",
   "tablet_connected": true,
-  "last_updated": "16:19:14",
+  "last_updated": "15:05:19",
   "previous_name_options": [
     "Aspirin 100mg",
     "Cough Syrup 100ml"
