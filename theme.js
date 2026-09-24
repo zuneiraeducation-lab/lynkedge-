@@ -5,14 +5,19 @@
     glossy: 'dark',
     dark: 'default'
   };
+  const themeDisplayNames = {
+    default: 'original',
+    glossy: 'light',
+    dark: 'dark'
+  };
   const buttonLabelMap = {
-    default: 'Glossy theme',
+    default: 'Light theme',
     glossy: 'Dark theme',
     dark: 'Original theme'
   };
 
   function normalizeTheme(theme) {
-    if (theme === 'glossy') return 'glossy';
+    if (theme === 'glossy' || theme === 'light') return 'glossy';
     if (theme === 'dark') return 'dark';
     return 'default';
   }
@@ -24,7 +29,7 @@
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
       button.textContent = buttonLabelMap[nextTheme];
       button.setAttribute('aria-pressed', String(nextTheme !== 'default'));
-      button.setAttribute('aria-label', `Switch to ${nextThemeMap[nextTheme] === 'default' ? 'original' : nextThemeMap[nextTheme]} theme`);
+      button.setAttribute('aria-label', `Switch to ${themeDisplayNames[nextThemeMap[nextTheme]] || 'original'} theme`);
     });
   }
 

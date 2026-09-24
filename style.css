@@ -1425,7 +1425,7 @@ body:not(.control-page):not(.display-mode) .feedback-banner.error {
   }
 }
 
-/* Optional glossy theme. The unscoped rules above remain the default theme. */
+/* Optional light theme (glossy). The unscoped rules above remain the default theme. */
 .theme-toggle {
   position: fixed;
   left: 14px;
@@ -1815,8 +1815,8 @@ html[data-theme="glossy"] .display-document-number {
 }
 
 /* ==========================================================================
-   Glossy Theme Date & Time Picker Popup
-   Reuses the same structure as Dark theme, styled with Glossy visual design
+   Light Theme Date & Time Picker Popup
+   Reuses the same structure as Dark theme, styled with Light theme visual design
    ========================================================================== */
 html[data-theme="glossy"] input[type="date"]::-webkit-calendar-picker-indicator,
 html[data-theme="glossy"] input[type="datetime-local"]::-webkit-calendar-picker-indicator,

@@ -376,7 +376,7 @@ def login_page(message=""):
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
-        <script>const t=localStorage.getItem('lynkedge-theme');document.documentElement.dataset.theme=(t==='glossy'||t==='dark')?t:'default';</script>
+        <script>const t=localStorage.getItem('lynkedge-theme');document.documentElement.dataset.theme=(t==='glossy'||t==='light')?'glossy':(t==='dark'?'dark':'default');</script>
     <style>
         .forgot-password-link {
             display: inline-block;
@@ -539,7 +539,7 @@ def login_page(message=""):
     </style>
 </head>
 <body>
-    <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false">Glossy theme</button>
+    <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false">Light theme</button>
     <main class="app-container">
         <div class="login-cipla-brand" aria-label="Cipla Goa FDHH">
             <div class="login-cipla-name">CIPLA</div>

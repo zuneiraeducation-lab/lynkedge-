@@ -29,7 +29,7 @@
 
   function isCustomPickerTheme() {
     const t = document.documentElement.dataset.theme;
-    return t === 'dark' || t === 'glossy';
+    return t === 'dark' || t === 'glossy' || t === 'light';
   }
 
   function isDarkTheme() {
