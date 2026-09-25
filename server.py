@@ -28,6 +28,7 @@ PERMISSION_LEVELS = {
     "manage_options": 2,
     "edit_field_names": 2,
     "edit_unit_info": 2,
+    "edit_unit_number": 3,
     "manage_rows": 3,
     "manage_structure": 3,
     "manage_accounts": 3,
@@ -355,6 +356,7 @@ def permission_payload(account):
         "manage_options": has_permission(account, "manage_options"),
         "edit_field_names": has_permission(account, "edit_field_names"),
         "edit_unit_info": has_permission(account, "edit_unit_info"),
+        "edit_unit_number": has_permission(account, "edit_unit_number"),
         "manage_rows": has_permission(account, "manage_rows"),
         "manage_structure": has_permission(account, "manage_structure"),
         "manage_accounts": has_permission(account, "manage_accounts"),
@@ -963,11 +965,14 @@ class LynkEdgeHandler(http.server.SimpleHTTPRequestHandler):
             if not isinstance(field_labels, dict):
                 field_labels = previous_state.get("field_labels", {})
 
-            if has_permission(account, "edit_unit_info"):
+            if has_permission(account, "edit_unit_number"):
                 unit_number = data.get("unit_number", previous_state.get("unit_number", ""))
-                document_number = data.get("document_number", previous_state.get("document_number", ""))
             else:
                 unit_number = previous_state.get("unit_number", "")
+
+            if has_permission(account, "edit_unit_info"):
+                document_number = data.get("document_number", previous_state.get("document_number", ""))
+            else:
                 document_number = previous_state.get("document_number", "")
 
             if product_name and product_name.strip() and product_name.strip() not in product_name_options:

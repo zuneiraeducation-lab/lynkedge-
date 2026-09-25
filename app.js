@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     manage_options: false,
     edit_field_names: false,
     edit_unit_info: false,
+    edit_unit_number: false,
     manage_rows: false,
     manage_structure: false,
     manage_accounts: false
@@ -755,7 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (customRowsContainer) customRowsContainer.classList.toggle('hidden', !permissions.manage_structure);
     if (addRowBtn) addRowBtn.classList.toggle('hidden', !permissions.manage_structure);
     if (editLabelsBtn) editLabelsBtn.classList.toggle('hidden', !permissions.edit_field_names);
-    if (fieldMap.unit_number) fieldMap.unit_number.readOnly = !permissions.edit_unit_info;
+    if (fieldMap.unit_number) fieldMap.unit_number.readOnly = !permissions.edit_unit_number;
     if (fieldMap.document_number) fieldMap.document_number.readOnly = !permissions.edit_unit_info;
     if (permissions.manage_accounts) {
       accountSettingsPanel.classList.remove('hidden');
